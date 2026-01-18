@@ -202,22 +202,25 @@
             min-width: 60px;
             padding: 10px 12px;
         }
-        
+
         .action-group .btn-icon {
             flex-shrink: 0;
             white-space: nowrap;
         }
+
         /* 锁定时手势 */
         .vrm-locked {
             cursor: default !important;
         }
+
         /* 默认抓取手势 */
         #vrm-canvas {
             cursor: grab !important;
         }
 
         /* 拖拽中手势 */
-        #vrm-canvas:active, .vrm-dragging {
+        #vrm-canvas:active,
+        .vrm-dragging {
             cursor: grabbing !important;
         }
 
@@ -445,7 +448,8 @@
             <input type="file" id="vrm-file-upload" accept=".vrm" style="display: none;">
             <button id="upload-btn" class="btn btn-primary" data-i18n="live2d.selectFolder">📁 选择文件夹</button>
             <div id="upload-status" style="font-size:12px; color:#666; margin-top:4px;"></div>
-            <button id="delete-model-btn" class="btn btn-danger" data-i18n="live2d.deleteModel" aria-label="Delete imported models" style="width:100%; margin-top:4px;">🗑️ 删除已导入模型</button>
+            <button id="delete-model-btn" class="btn btn-danger" data-i18n="live2d.deleteModel"
+                aria-label="Delete imported models" style="width:100%; margin-top:4px;">🗑️ 删除已导入模型</button>
         </div>
 
         <div class="control-group">
@@ -457,14 +461,16 @@
         </div>
 
         <div class="control-group" id="live2d-model-group">
-            <label for="model-select" class="control-label" id="live2d-model-label" data-i18n="live2d.selectLive2DModel">选择Live2D模型:</label>
+            <label for="model-select" class="control-label" id="live2d-model-label"
+                data-i18n="live2d.selectLive2DModel">选择Live2D模型:</label>
             <select id="model-select" class="control-select">
                 <option data-i18n="common.loading">加载中...</option>
             </select>
         </div>
 
         <div class="control-group" id="vrm-model-group" style="display:none;">
-            <label for="vrm-model-select" class="control-label" id="vrm-model-label" data-i18n="live2d.selectVRMModel">选择VRM模型:</label>
+            <label for="vrm-model-select" class="control-label" id="vrm-model-label"
+                data-i18n="live2d.selectVRMModel">选择VRM模型:</label>
             <select id="vrm-model-select" class="control-select">
                 <option data-i18n="common.loading">加载中...</option>
             </select>
@@ -482,7 +488,8 @@
                     <span data-i18n="live2d.play">播放</span>
                 </button>
                 <button id="stop-vrm-animation-btn" class="btn btn-secondary btn-icon" disabled>
-                    <img src="/static/icons/rest_off.png" alt="停止播放" data-i18n-alt="live2d.vrmAnimation.stop" style="width: 20px; height: 20px;">
+                    <img src="/static/icons/rest_off.png" alt="停止播放" data-i18n-alt="live2d.vrmAnimation.stop"
+                        style="width: 20px; height: 20px;">
                     <span data-i18n="live2d.vrmAnimation.stop">停止播放</span>
                 </button>
             </div>
@@ -493,7 +500,8 @@
                 </label>
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
                     <span data-i18n="live2d.vrmAnimation.speed">速度:</span>
-                    <input type="range" id="vrm-animation-speed" min="0.1" max="2" step="0.1" value="1.0" style="width: 80px;">
+                    <input type="range" id="vrm-animation-speed" min="0.1" max="2" step="0.1" value="1.0"
+                        style="width: 80px;">
                     <span id="vrm-animation-speed-value">1.0x</span>
                 </div>
             </div>
@@ -568,7 +576,8 @@
             <div class="lighting-control">
                 <label for="ambient-light-slider"><span data-i18n="vrm.lighting.ambientLight">环境光强度</span>:</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="ambient-light-slider" min="0" max="1.0" step="0.01" value="0.4" style="flex: 1;">
+                    <input type="range" id="ambient-light-slider" min="0" max="1.0" step="0.01" value="0.4"
+                        style="flex: 1;">
                     <span id="ambient-light-value" style="min-width: 40px;">0.4</span>
                 </div>
             </div>
@@ -576,7 +585,8 @@
             <div class="lighting-control">
                 <label for="main-light-slider"><span data-i18n="vrm.lighting.mainLight">主光源强度</span>:</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="main-light-slider" min="0" max="2.5" step="0.01" value="1.2" style="flex: 1;">
+                    <input type="range" id="main-light-slider" min="0" max="2.5" step="0.01" value="1.2"
+                        style="flex: 1;">
                     <span id="main-light-value" style="min-width: 40px;">1.2</span>
                 </div>
             </div>
@@ -584,7 +594,8 @@
             <div class="lighting-control">
                 <label for="fill-light-slider"><span data-i18n="vrm.lighting.fillLight">补光强度</span>:</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="fill-light-slider" min="0" max="1.0" step="0.01" value="0.5" style="flex: 1;">
+                    <input type="range" id="fill-light-slider" min="0" max="1.0" step="0.01" value="0.5"
+                        style="flex: 1;">
                     <span id="fill-light-value" style="min-width: 40px;">0.5</span>
                 </div>
             </div>
@@ -592,7 +603,8 @@
             <div class="lighting-control">
                 <label for="rim-light-slider"><span data-i18n="vrm.lighting.rimLight">轮廓光强度</span>:</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="rim-light-slider" min="0" max="1.5" step="0.05" value="0.8" style="flex: 1;">
+                    <input type="range" id="rim-light-slider" min="0" max="1.5" step="0.05" value="0.8"
+                        style="flex: 1;">
                     <span id="rim-light-value" style="min-width: 40px;">0.8</span>
                 </div>
             </div>
@@ -600,7 +612,8 @@
             <div class="lighting-control">
                 <label for="top-light-slider"><span data-i18n="vrm.lighting.topLight">顶光强度</span>:</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="top-light-slider" min="0" max="1.0" step="0.01" value="0.3" style="flex: 1;">
+                    <input type="range" id="top-light-slider" min="0" max="1.0" step="0.01" value="0.3"
+                        style="flex: 1;">
                     <span id="top-light-value" style="min-width: 40px;">0.3</span>
                 </div>
             </div>
@@ -608,7 +621,8 @@
             <div class="lighting-control">
                 <label for="bottom-light-slider"><span data-i18n="vrm.lighting.bottomLight">底光强度</span>:</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="bottom-light-slider" min="0" max="0.5" step="0.01" value="0.15" style="flex: 1;">
+                    <input type="range" id="bottom-light-slider" min="0" max="0.5" step="0.01" value="0.15"
+                        style="flex: 1;">
                     <span id="bottom-light-value" style="min-width: 40px;">0.15</span>
                 </div>
             </div>
@@ -616,7 +630,8 @@
             <div class="lighting-control">
                 <label for="exposure-slider"><span data-i18n="vrm.lighting.exposure">曝光</span>:</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="exposure-slider" min="0.5" max="2.5" step="0.05" value="1.0" style="flex: 1;">
+                    <input type="range" id="exposure-slider" min="0.5" max="2.5" step="0.05" value="1.0"
+                        style="flex: 1;">
                     <span id="exposure-value" style="min-width: 40px;">1.00</span>
                 </div>
             </div>
@@ -679,7 +694,8 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancel-delete-btn" data-i18n="common.cancel">取消</button>
-                <button class="btn btn-danger" id="confirm-delete-btn" data-i18n="live2d.deleteSelected" disabled>删除选中</button>
+                <button class="btn btn-danger" id="confirm-delete-btn" data-i18n="live2d.deleteSelected"
+                    disabled>删除选中</button>
             </div>
         </div>
     </div>
@@ -727,40 +743,40 @@
     <!-- VRM模块（按顺序加载，失败不影响Live2D）-->
     <script>
         (async function initVRMModules() {
-        const loadModules = async () => {
-            console.log('[VRM] 开始加载依赖模块');
-            const vrmModules = [
-                '/static/vrm-orientation.js',
-                '/static/vrm-core.js',
-                '/static/vrm-expression.js',
-                '/static/vrm-animation.js',
-                '/static/vrm-interaction.js',
-                '/static/vrm-manager.js',
-                '/static/vrm-ui-popup.js',
-                '/static/vrm-ui-buttons.js',
-                 '/static/vrm-init.js'
-            ];
+            const loadModules = async () => {
+                console.log('[VRM] 开始加载依赖模块');
+                const vrmModules = [
+                    '/static/vrm-orientation.js',
+                    '/static/vrm-core.js',
+                    '/static/vrm-expression.js',
+                    '/static/vrm-animation.js',
+                    '/static/vrm-interaction.js',
+                    '/static/vrm-manager.js',
+                    '/static/vrm-ui-popup.js',
+                    '/static/vrm-ui-buttons.js',
+                    '/static/vrm-init.js'
+                ];
 
-            for (const moduleSrc of vrmModules) {
-                const script = document.createElement('script');
-                script.src = `${moduleSrc}?v=${Date.now()}`;
-                await new Promise((resolve) => {
-                    script.onload = resolve;
-                    script.onerror = resolve; // 即使失败也继续，防止死锁
-                    document.body.appendChild(script);
-                });
+                for (const moduleSrc of vrmModules) {
+                    const script = document.createElement('script');
+                    script.src = `${moduleSrc}?v=${Date.now()}`;
+                    await new Promise((resolve) => {
+                        script.onload = resolve;
+                        script.onerror = resolve; // 即使失败也继续，防止死锁
+                        document.body.appendChild(script);
+                    });
+                }
+                window.vrmModuleLoaded = true;
+                window.dispatchEvent(new CustomEvent('vrm-modules-ready'));
+            };
+
+            // 如果 THREE 还没好，就等事件；好了就直接加载
+            if (typeof window.THREE === 'undefined') {
+                window.addEventListener('three-ready', loadModules, { once: true });
+            } else {
+                loadModules();
             }
-            window.vrmModuleLoaded = true;
-            window.dispatchEvent(new CustomEvent('vrm-modules-ready'));
-        };
-
-        // 如果 THREE 还没好，就等事件；好了就直接加载
-        if (typeof window.THREE === 'undefined') {
-            window.addEventListener('three-ready', loadModules, { once: true });
-        } else {
-            loadModules();
-        }
-    })();
+        })();
     </script>
 
     <script>
@@ -797,7 +813,7 @@
                     console.log(`[消息发送] 使用 postMessage 发送消息: ${action}`);
                     window.opener.postMessage(message, window.location.origin);
                 }
-                
+
                 // 方式2: 使用localStorage事件机制发送消息给主页面（备用方案）
                 try {
                     localStorage.setItem('nekopage_message', JSON.stringify(message));
@@ -810,9 +826,9 @@
                 console.error('发送消息给主页面失败:', e);
             }
         }
-        
-    
-        
+
+
+
         // 全局变量：跟踪未保存的更改
         window.hasUnsavedChanges = false;
         // 统一路径处理器，防止多处硬编码
@@ -825,7 +841,7 @@
                 path = String(path);
                 // 如果已经是 URL 格式 (http/https) 或 Web 绝对路径 (/)，直接返回
                 if (path.startsWith('http') || path.startsWith('/')) return path;
-                
+
                 // 【关键修复】统一将 Windows 的反斜杠转换为正斜杠，否则 includes 判断会失败
                 const normalizedPath = path.replace(/\\/g, '/');
                 const filename = normalizedPath.split('/').pop();
@@ -834,13 +850,13 @@
                 if (normalizedPath.includes('static/vrm')) {
                     // 你的动作文件确实在 animation 目录下
                     return `/static/vrm/animation/${filename}`;
-                } 
-                
+                }
+
                 // 2. 检测其他可能的目录结构
                 else if (normalizedPath.includes('models/vrm')) {
                     return `/models/vrm/animations/${filename}`;
                 }
-                
+
                 // 3. 默认 Fallback：如果是只有文件名，或者无法识别路径，默认去 user_vrm 找
                 return `/user_vrm/${type === 'animation' ? 'animation/' : ''}${filename}`;
             }
@@ -850,7 +866,7 @@
             async fetchJson(url, options = {}, timeout = 10000) {
                 const controller = new AbortController();
                 const id = setTimeout(() => controller.abort(), timeout);
-                
+
                 try {
                     const response = await fetch(url, {
                         ...options,
@@ -1098,7 +1114,7 @@
             try {
                 // 使用助手替换原有 fetch
                 availableModels = await RequestHelper.fetchJson('/api/live2d/models');
-                
+
                 if (availableModels.length > 0) {
                     modelSelect.innerHTML = `<option value="">${t('live2d.pleaseSelectModel', '请选择一个模型')}</option>`;
                     availableModels.forEach(model => {
@@ -1186,8 +1202,8 @@
                     // 在发送 PUT 请求保存数据前，添加校验
                     if (currentModelType === 'vrm') {
                         // 如果 modelName (即路径) 是 "undefined"，抛出错误或尝试自动修复
-                        if (!modelName || 
-                            modelName === 'undefined' || 
+                        if (!modelName ||
+                            modelName === 'undefined' ||
                             modelName === 'null' ||
                             (typeof modelName === 'string' && (
                                 modelName.trim() === '' ||
@@ -1195,21 +1211,21 @@
                                 modelName.toLowerCase().includes('null')
                             ))) {
                             console.error('[模型管理] 检测到无效的 VRM 模型路径，尝试自动修复:', modelName);
-                            
+
                             // 尝试从 currentModelInfo 获取有效路径
-                            if (currentModelInfo && currentModelInfo.path && 
-                                currentModelInfo.path !== 'undefined' && 
+                            if (currentModelInfo && currentModelInfo.path &&
+                                currentModelInfo.path !== 'undefined' &&
                                 currentModelInfo.path !== 'null' &&
                                 !currentModelInfo.path.toLowerCase().includes('undefined')) {
                                 modelName = currentModelInfo.path;
                                 console.log('[模型管理] 已从 currentModelInfo 修复路径:', modelName);
-                            } else if (currentModelInfo && currentModelInfo.name && 
-                                      currentModelInfo.name !== 'undefined' && 
-                                      currentModelInfo.name !== 'null' &&
-                                      !currentModelInfo.name.toLowerCase().includes('undefined')) {
+                            } else if (currentModelInfo && currentModelInfo.name &&
+                                currentModelInfo.name !== 'undefined' &&
+                                currentModelInfo.name !== 'null' &&
+                                !currentModelInfo.name.toLowerCase().includes('undefined')) {
                                 // 尝试根据文件名构建路径
-                                const filename = currentModelInfo.name.endsWith('.vrm') 
-                                    ? currentModelInfo.name 
+                                const filename = currentModelInfo.name.endsWith('.vrm')
+                                    ? currentModelInfo.name
                                     : `${currentModelInfo.name}.vrm`;
                                 modelName = `/user_vrm/${filename}`;
                                 console.log('[模型管理] 已根据文件名修复路径:', modelName);
@@ -1227,7 +1243,7 @@
                     // 2. 🔥 先从服务器拉取当前角色的完整档案（防止覆盖掉其他不需要修改的属性）
                     const charRes = await fetch('/api/characters');
                     if (!charRes.ok) throw new Error('无法连接到服务器获取角色数据');
-                    
+
                     const allData = await charRes.json();
                     // 拿到该角色的旧数据，如果没有就初始化为空对象
                     const charData = allData['猫娘']?.[lanlanName] || {};
@@ -1238,7 +1254,7 @@
                         // 绝对不要把 "undefined" 字符串保存到后端数据库
                         charData.vrm = modelName;
                         // 清空 Live2D 字段，避免混淆
-                        charData.live2d = ""; 
+                        charData.live2d = "";
                         if (vrmAnimation) charData.vrm_animation = vrmAnimation;
 
                         // 🔥 获取并写入光照数据
@@ -1377,7 +1393,7 @@
                     if (live2dModelGroup) live2dModelGroup.style.display = 'flex';
                     if (vrmModelGroup) vrmModelGroup.style.display = 'none';
                     if (live2dContainer) live2dContainer.style.display = 'block';
-                    if(vrmExpressionGroup) vrmExpressionGroup.style.display = 'none';
+                    if (vrmExpressionGroup) vrmExpressionGroup.style.display = 'none';
                     if (vrmContainer) {
                         vrmContainer.classList.add('hidden');
                         vrmContainer.style.display = 'none';
@@ -1469,7 +1485,7 @@
 
                     if (live2dModelGroup) live2dModelGroup.style.display = 'none';
                     if (vrmModelGroup) vrmModelGroup.style.display = 'flex';
-                    if(vrmExpressionGroup) vrmExpressionGroup.style.display = 'flex';
+                    if (vrmExpressionGroup) vrmExpressionGroup.style.display = 'flex';
                     if (live2dContainer) live2dContainer.style.display = 'none';
                     if (vrmContainer) {
                         vrmContainer.classList.remove('hidden');
@@ -1518,7 +1534,7 @@
                     // 隐藏参数编辑器按钮（VRM 模式下不需要）
                     const parameterEditorGroup = document.getElementById('parameter-editor-group');
                     if (parameterEditorGroup) parameterEditorGroup.style.display = 'none';
-                    
+
                     // 初始化 VRM 管理器
                     // 1. 如果 vrmManager 不存在，创建实例
                     if (!vrmManager) {
@@ -1571,7 +1587,7 @@
                         console.error('VRM 场景初始化失败:', error);
                         showStatus(t('live2d.vrmInitFailed', `VRM 场景初始化失败: ${error.message}`));
                     }
-                    
+
                     // 加载 VRM 模型列表（仅在切换到VRM模式时调用，不阻塞其他功能）
                     // 注意：如果已经在页面初始化时加载过，这里会重新加载以确保列表是最新的
                     loadVRMModels().catch(error => {
@@ -1602,28 +1618,28 @@
             async function loadVRMModels() {
                 try {
                     showStatus(t('live2d.loading', '正在加载模型列表...'));
-                    
+
                     // 使用助手代替 fetch
                     const data = await RequestHelper.fetchJson('/api/model/vrm/models');
-                    
+
                     const models = (data.success && Array.isArray(data.models)) ? data.models : [];
                     if (!vrmModelSelect) return;
-                    
+
                     if (models.length > 0) {
                         vrmModelSelect.innerHTML = `<option value="">${t('live2d.pleaseSelectModel', '请选择一个模型')}</option>`;
                         models.forEach(model => {
                             const option = document.createElement('option');
-                            
+
                             // 严格检查 model.path，如果不存在或为字符串 "undefined"，根据 model.filename 构建路径
                             let modelPath = model.path;
-                            let isValidPath = modelPath && 
-                                             modelPath !== 'undefined' && 
-                                             modelPath !== 'null' &&
-                                             typeof modelPath === 'string' &&
-                                             modelPath.trim() !== '' &&
-                                             !modelPath.toLowerCase().includes('undefined') &&
-                                             !modelPath.toLowerCase().includes('null');
-                            
+                            let isValidPath = modelPath &&
+                                modelPath !== 'undefined' &&
+                                modelPath !== 'null' &&
+                                typeof modelPath === 'string' &&
+                                modelPath.trim() !== '' &&
+                                !modelPath.toLowerCase().includes('undefined') &&
+                                !modelPath.toLowerCase().includes('null');
+
                             if (!isValidPath && model.filename) {
                                 // 根据 filename 自动构建路径
                                 const filename = model.filename.trim();
@@ -1632,18 +1648,18 @@
                                     isValidPath = true;
                                 }
                             }
-                            
+
                             // 如果仍然无效，跳过该模型
                             if (!isValidPath) {
                                 console.warn('[模型管理] 跳过无效的 VRM 模型:', model);
                                 return;
                             }
-                            
+
                             // 确保 data-path 属性永远是有效的 URL
-                            const validPath = modelPath.startsWith('/') || modelPath.startsWith('http') 
-                                ? modelPath 
+                            const validPath = modelPath.startsWith('/') || modelPath.startsWith('http')
+                                ? modelPath
                                 : `/user_vrm/${model.filename || modelPath.split(/[/\\]/).pop()}`;
-                            
+
                             option.value = model.url || validPath;
                             option.setAttribute('data-path', validPath);
                             if (model.filename) {
@@ -1686,13 +1702,13 @@
                     if (currentModelType !== 'vrm') {
                         await switchModelDisplay('vrm');
                     }
-                    
+
                     // 确保vrm-container可见
                     if (vrmContainer) {
                         vrmContainer.classList.remove('hidden');
                         vrmContainer.style.display = 'block';
                     }
-                    
+
                     // 如果vrmManager未初始化，尝试初始化
                     if (!vrmManager) {
                         try {
@@ -1730,7 +1746,7 @@
                             return;
                         }
                     }
-                    
+
                     // 确保场景已完全初始化（即使 vrmManager 已存在，场景也可能未初始化）
                     if (vrmManager && (!vrmManager.scene || !vrmManager.camera || !vrmManager.renderer)) {
                         console.log('[模型管理] VRM 场景未完全初始化，正在初始化...');
@@ -1752,10 +1768,10 @@
                     const selectedOption = vrmModelSelect.options[vrmModelSelect.selectedIndex];
                     let originalPath = selectedOption ? selectedOption.getAttribute('data-path') : null;
                     const filename = selectedOption ? selectedOption.getAttribute('data-filename') : null;
-                    
+
                     // 增加逻辑判断：如果获取到的路径是 null、空或者字符串 "undefined"，立即使用 data-filename 重新构造正确路径
-                    if (!originalPath || 
-                        originalPath === 'undefined' || 
+                    if (!originalPath ||
+                        originalPath === 'undefined' ||
                         originalPath === 'null' ||
                         originalPath.trim() === '' ||
                         originalPath.toLowerCase().includes('undefined') ||
@@ -1770,15 +1786,15 @@
                             return;
                         }
                     }
-                    
+
                     // modelPath 现在是 URL（如 /user_vrm/sister1.0.vrm），用于加载模型
                     // originalPath 是本地文件路径，用于保存配置
                     let modelUrl = modelPath; // 用于加载的URL
                     let modelPathForConfig = originalPath; // 用于配置的路径
-                    
+
                     // 确保 modelUrl 也是有效的
-                    if (!modelUrl || 
-                        modelUrl === 'undefined' || 
+                    if (!modelUrl ||
+                        modelUrl === 'undefined' ||
                         modelUrl === 'null' ||
                         modelUrl.trim() === '' ||
                         modelUrl.toLowerCase().includes('undefined') ||
@@ -1789,10 +1805,10 @@
                             modelUrl = originalPath;
                         }
                     }
-                    
+
                     // 确保赋值给 currentModelInfo 的 path 是绝对有效的
-                    if (!modelPathForConfig || 
-                        modelPathForConfig === 'undefined' || 
+                    if (!modelPathForConfig ||
+                        modelPathForConfig === 'undefined' ||
                         modelPathForConfig === 'null' ||
                         modelPathForConfig.trim() === '' ||
                         modelPathForConfig.toLowerCase().includes('undefined') ||
@@ -1806,7 +1822,7 @@
                             return;
                         }
                     }
-                    
+
                     // 保存当前 VRM 模型信息，用于后续保存到角色配置（在加载前就设置，这样即使加载失败也能保存）
                     currentModelInfo = {
                         name: filename || modelPathForConfig.split(/[/\\]/).pop() || modelPathForConfig,
@@ -1814,7 +1830,7 @@
                         url: modelUrl,
                         type: 'vrm'
                     };
-                    
+
                     // 选择模型后立即启用保存按钮（即使模型还未加载或加载失败）
                     if (savePositionBtn) {
                         savePositionBtn.disabled = false;
@@ -1823,10 +1839,10 @@
                     // 标记为有未保存更改
                     window.hasUnsavedChanges = true;
                     console.log('已标记为未保存更改（VRM模型切换），请点击 保存设置 持久化到角色配置。');
-                    
+
                     try {
                         showStatus(t('live2d.loadingVRMModel', `正在加载 VRM 模型...`));
-                        
+
                         // 确保容器可见
                         if (vrmContainer) {
                             vrmContainer.classList.remove('hidden');
@@ -1836,13 +1852,13 @@
                         if (vrmManager.vrmaAction) {
                             vrmManager.stopVRMAAnimation();
                         }
-                        
+
                         // 使用 URL 加载模型，而不是本地文件路径（浏览器不允许加载 file:// 路径）
                         // 传入 { autoPlay: false } 让模型保持 T-Pose 静止
                         //增加 addShadow: false
                         // 【注意】朝向会自动从preferences中加载（在vrm-core.js的loadModel中处理）
                         await vrmManager.loadModel(modelUrl, { autoPlay: false, addShadow: false });
-                        
+
                         // 检查是否从preferences加载了朝向
                         if (vrmManager.currentModel) {
                             const vrm = vrmManager.currentModel.vrm || vrmManager.currentModel;
@@ -1854,68 +1870,11 @@
                                         vrmManager.interaction.enableFaceCamera = false;
                                     }
                                 }
-                                
-                                //检查模型缩放是否太小或太大，自动调整为合理值
-                                const currentScale = vrm.scene.scale.x; // 使用 x 作为统一缩放值
-                                const needsAdjustment = currentScale < 0.5 || currentScale > 1.2;
-                                
-                                if (needsAdjustment) {
-                                    const issue = currentScale < 0.5 ? '过小' : '过大';
-                                    console.warn(`[模型管理] 检测到模型缩放${issue} (${currentScale})，自动调整为合理值`);
-                                    
-                                    // 等待一帧，确保模型完全加载和骨骼计算完成
-                                    await new Promise(resolve => requestAnimationFrame(resolve));
-                                    
-                                    // 计算模型的包围盒来获取实际高度
-                                    const THREE = window.THREE;
-                                    const box = new THREE.Box3().setFromObject(vrm.scene);
-                                    const modelSize = box.getSize(new THREE.Vector3());
-                                    const modelHeight = modelSize.y;
-                                    
-                                    const screenHeight = window.innerHeight;
-                                    const screenWidth = window.innerWidth;
-                                    const isMobile = window.innerWidth <= 768;
-                                    
-                                    let targetScale;
-                                    if (isMobile) {
-                                        // 移动端：使用固定缩放值，避免过大
-                                        targetScale = Math.max(0.5, Math.min(0.8, screenHeight / 1500));
-                                    } else {
-                                        // 桌面端：基于模型实际高度计算
-                                        if (modelHeight > 0 && Number.isFinite(modelHeight)) {
-                                            // 目标：让模型在屏幕上的高度约为屏幕高度的0.4-0.5倍
-                                            const targetScreenHeight = screenHeight * 0.45;
-                                            // 使用相机 FOV 计算
-                                            const camera = vrmManager.camera;
-                                            if (camera && camera.fov) {
-                                                const fov = camera.fov * (Math.PI / 180);
-                                                const cameraDistance = camera.position?.z || 5; // 默认距离 5
-                                                const worldHeightAtDistance = 2 * Math.tan(fov / 2) * cameraDistance;
-                                                const scaleRatio = (targetScreenHeight / screenHeight) * (worldHeightAtDistance / modelHeight);
-                                                targetScale = Math.max(0.5, Math.min(1.2, scaleRatio));
-                                            } else {
-                                                // 如果没有相机，使用简单的比例计算
-                                                // 假设标准 VRM 模型高度约为 1.5 单位
-                                                const standardModelHeight = 1.5;
-                                                const scaleRatio = (targetScreenHeight / screenHeight) * (standardModelHeight / modelHeight);
-                                                targetScale = Math.max(0.5, Math.min(1.2, scaleRatio));
-                                            }
-                                        } else {
-                                            // 如果无法获取模型高度，使用屏幕尺寸计算
-                                            targetScale = Math.max(0.5, Math.min(1.0, screenHeight / 1200));
-                                        }
-                                    }
-                                    
-                                    // 确保缩放值在合理范围内（最小 0.5，最大 1.2）
-                                    targetScale = Math.max(0.5, Math.min(1.2, targetScale));
-                                    
-                                    vrm.scene.scale.setScalar(targetScale);
-                                    console.log(`[模型管理] 已将模型缩放从 ${currentScale.toFixed(3)} 调整为: ${targetScale.toFixed(3)} (模型高度: ${modelHeight.toFixed(2)})`);
-                                }
+                                // 模型缩放计算已统一在 vrm-core.js 的 loadModel() 中处理
                             }
                         }
-                        
-                        
+
+
                         // 在这里加载表情
                         loadVRMExpressions();
                         // 加载新模型时重置动作列表状态，允许重新加载动作
@@ -1940,7 +1899,7 @@
                 });
             }
 
-            
+
             // 加载 VRM 动作列表
             async function loadVRMAnimations(autoPlaySaved = false) {
                 try {
@@ -1953,13 +1912,13 @@
                         vrmAnimations.forEach(anim => {
                             const option = document.createElement('option');
                             // 确保 animPath 是字符串：优先使用 anim.path，否则使用 anim.url，最后使用 anim 本身（如果是字符串）
-                            const animPath = (typeof anim.path === 'string' ? anim.path : null) 
+                            const animPath = (typeof anim.path === 'string' ? anim.path : null)
                                 || (typeof anim.url === 'string' ? anim.url : null)
                                 || (typeof anim === 'string' ? anim : String(anim));
-                            
+
                             const finalUrl = ModelPathHelper.vrmToUrl(animPath, 'animation');
-                            
-                            option.value = finalUrl; 
+
+                            option.value = finalUrl;
                             option.setAttribute('data-path', animPath);
                             option.setAttribute('data-filename', anim.name || anim.filename || finalUrl.split('/').pop());
                             option.textContent = option.getAttribute('data-filename');
@@ -2061,11 +2020,11 @@
             // 加载 VRM 表情列表
             function loadVRMExpressions() {
                 if (!vrmExpressionSelect || !vrmManager || !vrmManager.expression) return;
-                
+
                 const expressions = vrmManager.expression.getExpressionList();
-                
+
                 vrmExpressionSelect.innerHTML = `<option value="">${t('live2d.vrmExpression.selectExpression', '选择表情预览')}</option>`;
-                
+
                 if (expressions.length > 0) {
                     expressions.forEach(name => {
                         const opt = document.createElement('option');
@@ -2286,7 +2245,7 @@
             }
 
 
-           
+
 
             // 应用打光值到UI和场景
             function applyLightingValues(lighting) {
@@ -2298,7 +2257,7 @@
                     }, 100);
                     return;
                 }
-                
+
                 if (ambientLightSlider && ambientLightValue) {
                     ambientLightSlider.value = lighting.ambient;
                     ambientLightValue.textContent = lighting.ambient.toFixed(2);
@@ -2354,7 +2313,7 @@
                         vrmManager.renderer.toneMapping = lighting.toneMapping;
                     }
                 }
-                
+
                 // 强制渲染一次，确保光照立即生效
                 if (vrmManager?.renderer && vrmManager?.scene && vrmManager?.camera) {
                     vrmManager.renderer.render(vrmManager.scene, vrmManager.camera);
@@ -2395,7 +2354,7 @@
                 try {
                     const lanlanName = await getLanlanName();
                     if (!lanlanName) return { isVoiceMode: false, isCurrent: false };
-                    
+
                     const response = await fetch(`/api/characters/catgirl/${encodeURIComponent(lanlanName)}/voice_mode_status`, {
                         method: 'GET',
                         headers: {
@@ -2404,13 +2363,13 @@
                         // 设置较短的超时时间，避免长时间等待
                         signal: AbortSignal.timeout(5000)
                     });
-                    
+
                     if (!response.ok) {
                         // 如果响应不成功，记录但不阻止操作
                         console.warn(`检查语音模式状态失败: HTTP ${response.status}`);
                         return { isVoiceMode: false, isCurrent: false };
                     }
-                    
+
                     const data = await response.json();
                     return {
                         isVoiceMode: data.is_voice_mode || false,
@@ -2455,7 +2414,7 @@
                 // 获取选中的option元素，从中获取item_id
                 const selectedOption = e.target[e.target.selectedIndex];
                 const modelSteamId = selectedOption ? selectedOption.dataset.itemId : currentModelInfo.item_id;
-                
+
                 // 更新currentModelInfo的item_id（如果从option获取到了）
                 if (modelSteamId && modelSteamId !== 'undefined') {
                     currentModelInfo.item_id = modelSteamId;
@@ -2489,7 +2448,7 @@
                     } else {
                         apiUrl = `/api/live2d/model_files/${encodeURIComponent(modelName)}`;
                     }
-                    
+
                     // 使用助手
                     const filesData = await RequestHelper.fetchJson(apiUrl);
                     currentModelFiles = filesData;
@@ -2620,18 +2579,18 @@
                     console.warn('表情预览功能仅支持 Live2D 模型');
                     return;
                 }
-                
+
                 // 重新获取当前模型，确保使用最新引用
                 const currentModel = window.live2dManager ? window.live2dManager.getCurrentModel() : live2dModel;
                 if (!currentModel || !expressionSelect.value) {
                     showStatus(t('live2d.pleaseLoadModel', '请先加载模型'), 2000);
                     return;
                 }
-                
+
                 // 从完整路径中提取表情名称（去掉路径和扩展名）
                 const expressionName = expressionSelect.value.split('/').pop().replace('.exp3.json', '');
                 console.log('播放表情:', expressionName); // 添加调试信息
-                
+
                 try {
                     // expression 方法是异步的，需要使用 await
                     const result = await currentModel.expression(expressionName);
@@ -2672,7 +2631,7 @@
                     // Live2D模式下需要currentModelInfo
                     if (!currentModelInfo) return;
                 }
-                
+
                 showStatus(t('live2d.savingSettings', '正在保存设置...'));
 
                 let positionSuccess = false;
@@ -2923,17 +2882,17 @@
                         // 【新增】在上传成功后，先检测并修正模型朝向，然后再添加到列表
                         console.log(`[上传] 上传成功，result:`, result);
                         console.log(`[上传] 检查条件 - result.model_path:`, result.model_path, `VRMOrientationDetector:`, !!window.VRMOrientationDetector, `vrmManager:`, !!window.vrmManager);
-                        
+
                         if (result.model_path && window.VRMOrientationDetector && window.vrmManager) {
                             console.log(`[上传] ✅ 开始检测模型朝向`);
                             try {
                                 uploadStatus.textContent = t('live2d.vrmUpload.detectingOrientation', '正在检测并修正模型朝向...');
-                                
+
                                 // 转换模型路径为URL格式
                                 // result.model_path 可能是本地路径（如 C:/Users/.../file.vrm）
                                 // 需要转换为URL格式（如 /user_vrm/file.vrm）
                                 let modelUrl = result.model_path;
-                                
+
                                 // 如果是本地路径（包含 : 或 \），提取文件名
                                 if (modelUrl.includes(':') || modelUrl.includes('\\')) {
                                     const filename = modelUrl.split(/[/\\]/).pop();
@@ -2943,30 +2902,30 @@
                                     const filename = modelUrl.split(/[/\\]/).pop();
                                     modelUrl = `/user_vrm/${filename}`;
                                 }
-                                
+
                                 // 确保路径格式正确（统一使用 /user_vrm/ 前缀）
                                 if (!modelUrl.startsWith('/user_vrm/') && !modelUrl.startsWith('/static/vrm/')) {
                                     const filename = modelUrl.split(/[/\\]/).pop();
                                     modelUrl = `/user_vrm/${filename}`;
                                 }
-                                
+
                                 // 初始化Three.js（如果还没初始化）
                                 if (!window.vrmManager.scene) {
                                     await window.vrmManager.initThreeJS('vrm-canvas', 'vrm-container');
                                 }
-                                
+
                                 // 临时加载模型
                                 await window.vrmManager.loadModel(modelUrl, { autoPlay: false, addShadow: false });
-                                
+
                                 // 等待几帧，确保模型完全加载、骨骼位置计算完成
                                 for (let i = 0; i < 3; i++) {
                                     await new Promise(resolve => requestAnimationFrame(resolve));
                                 }
-                                
+
                                 // 检测并修正朝向（会自动保存到preferences）
                                 if (window.vrmManager.currentModel && window.vrmManager.currentModel.vrm) {
                                     const vrm = window.vrmManager.currentModel.vrm;
-                                    
+
                                     // 检测朝向
                                     const needsRotation = window.VRMOrientationDetector.detectNeedsRotation(vrm);
                                     const detectedRotation = {
@@ -2974,18 +2933,18 @@
                                         y: needsRotation ? Math.PI : 0,
                                         z: 0
                                     };
-                                    
+
                                     // 应用旋转
                                     window.VRMOrientationDetector.applyRotation(vrm, detectedRotation);
-                                    
+
                                     // 等待一帧，确保旋转已应用
                                     await new Promise(resolve => requestAnimationFrame(resolve));
-                                    
+
                                     // 保存到preferences（使用与vrm-core.js相同的逻辑）
                                     if (window.vrmManager.core && typeof window.vrmManager.core.saveUserPreferences === 'function') {
                                         const currentPosition = vrm.scene.position.clone();
                                         const currentScale = vrm.scene.scale.clone();
-                                        
+
                                         const saveSuccess = await window.vrmManager.core.saveUserPreferences(
                                             modelUrl,
                                             { x: currentPosition.x, y: currentPosition.y, z: currentPosition.z },
@@ -2993,7 +2952,7 @@
                                             detectedRotation,
                                             null
                                         );
-                                        
+
                                         if (saveSuccess) {
                                             const rotationDegrees = (detectedRotation.y * 180 / Math.PI).toFixed(1);
                                             uploadStatus.textContent = t('live2d.vrmUpload.orientationFixed', `✓ 模型朝向已修正并保存 (${rotationDegrees}度)`, { degrees: rotationDegrees });
@@ -3005,7 +2964,7 @@
                                         uploadStatus.textContent = t('live2d.vrmUpload.cannotSaveOrientation', '⚠ 无法保存朝向配置');
                                         console.error(`[上传检测] saveUserPreferences方法不存在`);
                                     }
-                                    
+
                                     // 清理临时加载的模型
                                     if (window.vrmManager.currentModel && window.vrmManager.currentModel.vrm) {
                                         window.vrmManager.scene.remove(window.vrmManager.currentModel.vrm.scene);
@@ -3040,7 +2999,7 @@
                                             return optPath && (optPath.endsWith(fileName) || optPath.includes(fileName));
                                         });
                                     }
-                                    
+
                                     if (option) {
                                         vrmModelSelect.value = option.value;
                                         // 触发change事件以加载模型
@@ -3105,7 +3064,7 @@
                     if (result.success && result.models && result.models.length > 0) {
                         userModelList.innerHTML = '';
                         result.models.forEach(model => {
-                            const sourceLabel = model.source === 'user_documents' 
+                            const sourceLabel = model.source === 'user_documents'
                                 ? t('live2d.userDocuments', '用户文档')
                                 : t('live2d.localUpload', '本地上传');
                             const displayName = model.name.replace(/\.model3$/i, '');
@@ -3527,7 +3486,7 @@
                     currentEmotionMapping = { motions: {}, expressions: {} };
                 }
             }
-        
+
             // 智能检测并修正 VRM 模型朝向
             // 【强力调试版】智能检测并修正 VRM 模型朝向
             function autoCorrectVRMOrientation(vrm) {
@@ -3542,7 +3501,7 @@
                         console.log("【调试】尝试使用 window.vrmManager.model 替补...");
                         vrm = window.vrmManager.model;
                     } else {
-                        return; 
+                        return;
                     }
                 }
 
@@ -3558,7 +3517,7 @@
 
                     console.log("【调试】正在强制刷新骨骼矩阵...");
                     scene.updateMatrixWorld(true);
-                    
+
                     const footNode = humanoid.getNormalizedBoneNode('leftFoot');
                     const toesNode = humanoid.getNormalizedBoneNode('leftToes');
 
@@ -3573,10 +3532,10 @@
 
                         if (toesPos.z < footPos.z - 0.001) {
                             console.log('【VRM Check】判定结果：背对屏幕 -> 🔄 执行旋转 180 度');
-                            scene.rotation.y = Math.PI; 
+                            scene.rotation.y = Math.PI;
                         } else {
                             console.log('【VRM Check】判定结果：正对屏幕 -> ✅ 保持原样');
-                            scene.rotation.y = 0; 
+                            scene.rotation.y = 0;
                         }
                     } else {
                         console.warn('【VRM Check】⚠️ 未找到脚部骨骼 (leftFoot 或 leftToes 缺失)，无法判断。');
@@ -3603,7 +3562,7 @@
                     }
                     const charactersData = await charResponse.json();
                     const catgirlConfig = charactersData['猫娘']?.[lanlanName];
-                    
+
                     if (!catgirlConfig) {
                         console.log(`未找到角色 ${lanlanName} 的配置`);
                         return;
@@ -3616,9 +3575,9 @@
                         const rawValue = catgirlConfig.vrm;
                         if (typeof rawValue === 'string') {
                             const trimmed = rawValue.trim();
-                            if (trimmed !== '' && 
-                                trimmed !== 'undefined' && 
-                                trimmed !== 'null' && 
+                            if (trimmed !== '' &&
+                                trimmed !== 'undefined' &&
+                                trimmed !== 'null' &&
                                 !trimmed.includes('undefined') &&
                                 !trimmed.includes('null')) {
                                 hasValidVRMPath = true;
@@ -3630,7 +3589,7 @@
                             }
                         }
                     }
-                    
+
                     // 确定模型类型：优先使用 model_type，如果没有则根据是否有有效的 VRM 路径判断
                     let modelType = catgirlConfig.model_type || (hasValidVRMPath ? 'vrm' : 'live2d');
 
@@ -3638,7 +3597,7 @@
                     if (modelType === 'vrm' && !hasValidVRMPath) {
                         console.warn(`[模型管理] 角色 ${lanlanName} 的模型类型设置为 VRM，但 VRM 模型路径无效或未设置，自动修复为 Live2D:`, catgirlConfig.vrm);
                         showStatus(t('live2d.autoFixModelType', `角色 ${lanlanName} 的模型类型配置不一致，已自动修复为 Live2D`, { name: lanlanName }), 3000);
-                        
+
                         // 自动修复：将 model_type 改为 'live2d'
                         try {
                             const fixResponse = await fetch(`/api/characters/catgirl/${encodeURIComponent(lanlanName)}`, {
@@ -3650,7 +3609,7 @@
                                     model_type: 'live2d'
                                 })
                             });
-                            
+
                             if (fixResponse.ok) {
                                 const fixResult = await fixResponse.json();
                                 if (fixResult.success) {
@@ -3675,7 +3634,7 @@
                             modelType = 'live2d';
                         }
                     }
-                    
+
                     // 先切换模型类型，清理旧模型资源
                     await switchModelDisplay(modelType);
 
@@ -3691,9 +3650,9 @@
                                 const rawValue = catgirlConfig.vrm;
                                 if (typeof rawValue === 'string') {
                                     const trimmed = rawValue.trim();
-                                    if (trimmed !== '' && 
-                                        trimmed.toLowerCase() !== 'undefined' && 
-                                        trimmed.toLowerCase() !== 'null' && 
+                                    if (trimmed !== '' &&
+                                        trimmed.toLowerCase() !== 'undefined' &&
+                                        trimmed.toLowerCase() !== 'null' &&
                                         !trimmed.toLowerCase().includes('undefined') &&
                                         !trimmed.toLowerCase().includes('null')) {
                                         vrmModelPath = trimmed;
@@ -3706,17 +3665,17 @@
                                     }
                                 }
                             }
-                            
+
                             // 如果路径有效，设置选择器的值，但不加载模型
                             if (vrmModelPath && vrmModelSelect) {
                                 // 尝试在下拉列表中找到匹配的选项
                                 const matchedOption = Array.from(vrmModelSelect.options).find(opt => {
                                     const optPath = opt.getAttribute('data-path');
                                     const optValue = opt.value;
-                                    return optPath === vrmModelPath || optValue === vrmModelPath || 
-                                           (optPath && optPath.includes(vrmModelPath.split(/[/\\]/).pop()));
+                                    return optPath === vrmModelPath || optValue === vrmModelPath ||
+                                        (optPath && optPath.includes(vrmModelPath.split(/[/\\]/).pop()));
                                 });
-                                
+
                                 if (matchedOption) {
                                     vrmModelSelect.value = matchedOption.value;
                                     console.log(`[模型管理] 已设置VRM模型选择器为: ${matchedOption.value}，等待用户确认加载`);
@@ -3726,7 +3685,7 @@
                             }
                             return; // 在模型管理页面不自动加载，直接返回
                         }
-                        
+
                         // 非模型管理页面，继续原有的自动加载逻辑
                         // VRM 模型
                         // 安全获取 VRM 模型路径（已经验证过有效性）
@@ -3736,9 +3695,9 @@
                             if (typeof rawValue === 'string') {
                                 const trimmed = rawValue.trim();
                                 // 检查是否是无效的字符串值
-                                if (trimmed !== '' && 
-                                    trimmed.toLowerCase() !== 'undefined' && 
-                                    trimmed.toLowerCase() !== 'null' && 
+                                if (trimmed !== '' &&
+                                    trimmed.toLowerCase() !== 'undefined' &&
+                                    trimmed.toLowerCase() !== 'null' &&
                                     !trimmed.toLowerCase().includes('undefined') &&
                                     !trimmed.toLowerCase().includes('null')) {
                                     vrmModelPath = trimmed;
@@ -3752,15 +3711,15 @@
                                 }
                             }
                         }
-                        
+
                         // 如果路径无效，尝试在下拉列表中根据文件名寻找匹配项并自动修复
-                        if (!vrmModelPath || 
-                            vrmModelPath === 'undefined' || 
+                        if (!vrmModelPath ||
+                            vrmModelPath === 'undefined' ||
                             vrmModelPath === 'null' ||
                             vrmModelPath.toLowerCase().includes('undefined') ||
                             vrmModelPath.toLowerCase().includes('null')) {
                             console.warn(`[模型管理] 角色 ${lanlanName} 的 VRM 模型路径无效，尝试自动修复:`, catgirlConfig.vrm);
-                            
+
                             // 尝试在下拉列表中根据文件名寻找匹配项
                             if (vrmModelSelect && vrmModelSelect.options.length > 0) {
                                 // 如果路径包含文件名，尝试提取文件名
@@ -3772,7 +3731,7 @@
                                         possibleFilename = lastPart;
                                     }
                                 }
-                                
+
                                 // 在下拉列表中查找匹配项
                                 let matchedOption = null;
                                 if (possibleFilename) {
@@ -3780,16 +3739,16 @@
                                         const optFilename = opt.getAttribute('data-filename');
                                         const optPath = opt.getAttribute('data-path');
                                         return (optFilename && optFilename === possibleFilename) ||
-                                               (optPath && optPath.includes(possibleFilename));
+                                            (optPath && optPath.includes(possibleFilename));
                                     });
                                 }
-                                
+
                                 if (matchedOption) {
                                     const fixedPath = matchedOption.getAttribute('data-path');
                                     if (fixedPath && fixedPath !== 'undefined' && fixedPath !== 'null') {
                                         vrmModelPath = fixedPath;
                                         console.log(`[模型管理] 已在下拉列表中找到匹配项，修复路径为: ${vrmModelPath}`);
-                                        
+
                                         // 自动修复后端配置
                                         try {
                                             const fixResponse = await fetch(`/api/characters/catgirl/l2d/${encodeURIComponent(lanlanName)}`, {
@@ -3809,10 +3768,10 @@
                                     }
                                 }
                             }
-                            
+
                             // 如果仍然无效，跳过加载
-                            if (!vrmModelPath || 
-                                vrmModelPath === 'undefined' || 
+                            if (!vrmModelPath ||
+                                vrmModelPath === 'undefined' ||
                                 vrmModelPath === 'null' ||
                                 vrmModelPath.toLowerCase().includes('undefined') ||
                                 vrmModelPath.toLowerCase().includes('null')) {
@@ -3821,45 +3780,45 @@
                                 return;
                             }
                         }
-                        
+
                         console.log(`自动加载角色 ${lanlanName} 的 VRM 模型: ${vrmModelPath}`);
                         showStatus(t('live2d.loadingCharacterModel', `正在加载角色 ${lanlanName} 的 VRM 模型...`, { name: lanlanName }));
-                        
+
                         // 设置模型选择器
                         if (vrmModelSelect) {
                             vrmModelSelect.value = vrmModelPath;
                         }
-                        
+
                         // 设置当前模型信息
                         currentModelInfo = {
                             name: vrmModelPath,
                             path: vrmModelPath,
                             type: 'vrm'
                         };
-                        
+
                         // 加载 VRM 模型（会自动循环播放wait动作）
                         // 注意：vrmModelPath 可能是本地路径，需要转换为 URL
                         if (vrmManager) {
                             // 再次验证 vrmModelPath 的有效性
-                            if (!vrmModelPath || 
-                                vrmModelPath === 'undefined' || 
-                                vrmModelPath === 'null' || 
+                            if (!vrmModelPath ||
+                                vrmModelPath === 'undefined' ||
+                                vrmModelPath === 'null' ||
                                 (typeof vrmModelPath === 'string' && (vrmModelPath.trim() === '' || vrmModelPath.includes('undefined')))) {
                                 console.error('[模型管理] vrmModelPath 在路径转换前无效:', vrmModelPath);
                                 showStatus(t('live2d.vrmModelPathInvalid', `VRM 模型路径无效，请手动选择模型`));
                                 return;
                             }
-                            
+
                             // 如果路径是本地文件路径，转换为 URL
                             let modelUrl = vrmModelPath;
-                            
+
                             // 确保 modelUrl 是有效的字符串
                             if (typeof modelUrl !== 'string' || !modelUrl) {
                                 console.error('[模型管理] modelUrl 不是有效字符串:', modelUrl);
                                 showStatus(t('live2d.vrmModelPathInvalid', `VRM 模型路径无效，请手动选择模型`));
                                 return;
                             }
-                            
+
                             if (!modelUrl.startsWith('/') && !modelUrl.startsWith('http')) {
                                 // 假设是文件名，转换为 URL
                                 const filename = modelUrl.split(/[/\\]/).pop();
@@ -3886,17 +3845,17 @@
                                 // 确保路径格式正确（统一使用正斜杠）
                                 modelUrl = modelUrl.replace(/\\/g, '/');
                             }
-                            
+
                             // 最终验证：确保 modelUrl 不包含 "undefined" 或 "null"
-                            if (typeof modelUrl !== 'string' || 
-                                modelUrl.includes('undefined') || 
+                            if (typeof modelUrl !== 'string' ||
+                                modelUrl.includes('undefined') ||
                                 modelUrl.includes('null') ||
                                 modelUrl.trim() === '') {
                                 console.error('[模型管理] 路径转换后仍包含无效值:', modelUrl);
                                 showStatus(t('live2d.vrmModelPathInvalid', `VRM 模型路径无效，请手动选择模型`));
                                 return;
                             }
-                            
+
                             // 确保场景已完全初始化（检查所有必要组件）
                             if (!vrmManager.scene || !vrmManager.camera || !vrmManager.renderer) {
                                 console.log('[模型管理] VRM 场景未完全初始化，正在初始化...');
@@ -3913,20 +3872,20 @@
                                     return;
                                 }
                             }
-                            
+
                             // 传入 { autoPlay: false }
                             // 注意：模型朝向会自动检测并保存，无需手动处理
                             await vrmManager.loadModel(modelUrl, { autoPlay: false, addShadow: false });
-                            
+
                             console.log('模型加载完成，已重置为 T-Pose 等待指令');
-                            
+
                         } else {
                             // 如果 vrmManager 还未初始化，触发 change 事件来加载模型
                             if (vrmModelSelect) {
                                 vrmModelSelect.dispatchEvent(new Event('change'));
                             }
                         }
-                        
+
                         showStatus(t('live2d.modelLoaded', `已加载角色 ${lanlanName} 的 VRM 模型`, { name: lanlanName }));
                     } else {
                         // Live2D 模型

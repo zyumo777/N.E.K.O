@@ -8,24 +8,24 @@ class VRMManager {
         this.renderer = null;
         this.currentModel = null;
         this.animationMixer = null;
-        
+
         this.clock = (typeof window.THREE !== 'undefined') ? new window.THREE.Clock() : null;
         this.container = null;
         this._animationFrameId = null;
-        this._uiUpdateLoopId = null; 
+        this._uiUpdateLoopId = null;
         this.enablePhysics = true;
-        
+
         // 阴影资源引用（用于清理）
         this._shadowTexture = null;
         this._shadowMaterial = null;
         this._shadowGeometry = null;
         this._shadowMesh = null;
-        
+
         // 模块作用域的 window 事件处理器数组（避免模块间冲突）：_coreWindowHandlers（VRMCore，如 resize）、_uiWindowHandlers（VRMUIButtons，如 resize, live2d-goodbye-click）、_initWindowHandlers（VRMInit，如 visibilitychange）
         this._coreWindowHandlers = [];
         this._uiWindowHandlers = [];
         this._initWindowHandlers = [];
-        
+
         // 向后兼容：保留 _windowEventHandlers 作为 core 的别名（避免破坏现有代码）；建议新代码使用 _coreWindowHandlers
         Object.defineProperty(this, '_windowEventHandlers', {
             get: () => this._coreWindowHandlers,
@@ -33,7 +33,7 @@ class VRMManager {
             enumerable: true,
             configurable: true
         });
-        
+
         this._initModules();
     }
 
@@ -50,27 +50,27 @@ class VRMManager {
         const dpr = window.devicePixelRatio || 1;
         const baseSize = 64;
         const size = Math.max(baseSize, Math.round(baseSize * Math.min(dpr, 2)));
-        
+
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
-        
+
         if (!ctx) {
             console.warn('[VRM Manager] 无法获取 2d context，返回透明纹理');
             return new window.THREE.CanvasTexture(canvas);
         }
-        
+
         const center = size / 2;
         const radius = center;
         const gradient = ctx.createRadialGradient(center, center, 0, center, center, radius);
         gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
         gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.3)');
         gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        
+
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, size, size);
-        
+
         const texture = new window.THREE.CanvasTexture(canvas);
         return texture;
     }
@@ -79,12 +79,12 @@ class VRMManager {
         const SHADOW_SCALE_MULT = 0.5;
         const SHADOW_Y_OFFSET = 0.001;
         const FIX_CENTER_XZ = true;
-        
+
         result.vrm.scene.updateMatrixWorld(true);
-        
+
         const bodyBox = new window.THREE.Box3();
         let hasBodyMesh = false;
-        
+
         result.vrm.scene.traverse((object) => {
             if (object.isSkinnedMesh) {
                 object.updateMatrixWorld(true);
@@ -94,11 +94,11 @@ class VRMManager {
                 hasBodyMesh = true;
             }
         });
-        
+
         if (!hasBodyMesh) {
             bodyBox.setFromObject(result.vrm.scene);
         }
-        
+
         result.vrm.scene.updateMatrixWorld(true);
         const sceneInverseMatrix = result.vrm.scene.matrixWorld.clone().invert();
         const worldCorners = [
@@ -116,20 +116,20 @@ class VRMManager {
             const localCorner = corner.clone().applyMatrix4(sceneInverseMatrix);
             localBodyBox.expandByPoint(localCorner);
         });
-        
+
         // 获取包围盒尺寸（用于计算阴影大小，使用世界空间的尺寸）
         const bodySize = new window.THREE.Vector3();
         bodyBox.getSize(bodySize);
-        
+
         // 计算阴影大小（使用身体宽度和深度的较大值作为基准）
         const shadowDiameter = Math.max(
             Math.max(bodySize.x, bodySize.z) * SHADOW_SCALE_MULT,
             0.3  // 最小尺寸保底
         );
-        
+
         // 5. 清理之前的阴影资源（如果存在）
         this._disposeShadowResources();
-        
+
         // 6. 创建阴影纹理和材质
         this._shadowTexture = this._createBlobShadowTexture();
         this._shadowMaterial = new window.THREE.MeshBasicMaterial({
@@ -139,18 +139,18 @@ class VRMManager {
             depthWrite: false,  // 不写入深度缓冲，避免遮挡模型
             side: window.THREE.DoubleSide
         });
-        
+
         // 7. 创建阴影网格
         this._shadowGeometry = new window.THREE.PlaneGeometry(1, 1);
         this._shadowMesh = new window.THREE.Mesh(this._shadowGeometry, this._shadowMaterial);
         this._shadowMesh.rotation.x = -Math.PI / 2;  // 旋转到水平面
         this._shadowMesh.scale.set(shadowDiameter, shadowDiameter, 1);
-        
+
         // 8. 计算阴影位置（使用多种回退策略）
         let shadowX = 0;
         let shadowY = 0;
         let shadowZ = 0;
-        
+
         // 优先使用 humanoid 骨骼来精确定位（使用 getNormalizedBoneNode() API 保证 VRM0/VRM1 兼容性）
         if (result.vrm.humanoid) {
             try {
@@ -159,26 +159,26 @@ class VRMManager {
                 const rightToes = result.vrm.humanoid.getNormalizedBoneNode('rightToes');
                 const leftFoot = result.vrm.humanoid.getNormalizedBoneNode('leftFoot');
                 const rightFoot = result.vrm.humanoid.getNormalizedBoneNode('rightFoot');
-                
+
                 // 优先使用脚趾骨骼，如果不存在则使用脚部骨骼
                 const leftTargetBone = leftToes || leftFoot;
                 const rightTargetBone = rightToes || rightFoot;
-                
+
                 if (leftTargetBone && rightTargetBone) {
                     // 更新骨骼矩阵
                     leftTargetBone.updateMatrixWorld(true);
                     rightTargetBone.updateMatrixWorld(true);
-                    
+
                     // 获取两脚的世界位置
                     const leftFootPos = new window.THREE.Vector3();
                     const rightFootPos = new window.THREE.Vector3();
                     leftTargetBone.getWorldPosition(leftFootPos);
                     rightTargetBone.getWorldPosition(rightFootPos);
-                    
+
                     // 如果使用的是脚部骨骼（不是脚趾），需要向下偏移到脚底（脚部骨骼在脚踝，脚趾骨骼在脚底）
                     let leftBottomY = leftFootPos.y;
                     let rightBottomY = rightFootPos.y;
-                    
+
                     // 查找最低Y坐标的辅助函数
                     const findLowestY = (bone, currentY) => {
                         let lowest = currentY;
@@ -196,29 +196,29 @@ class VRMManager {
                         }
                         return lowest;
                     };
-                    
+
                     // 如果使用的是脚部骨骼，需要向下偏移（估算脚的长度）
                     if (!leftToes && leftFoot) {
                         leftBottomY = findLowestY(leftFoot, leftFootPos.y);
                     }
-                    
+
                     if (!rightToes && rightFoot) {
                         rightBottomY = findLowestY(rightFoot, rightFootPos.y);
                     }
-                    
+
                     // 转换为相对于 vrm.scene 的局部坐标
                     result.vrm.scene.updateMatrixWorld(true);
                     const currentSceneInverseMatrix = result.vrm.scene.matrixWorld.clone().invert();
-                    
+
                     // 将最低点转换为局部坐标
                     const leftBottomPos = new window.THREE.Vector3(leftFootPos.x, leftBottomY, leftFootPos.z);
                     const rightBottomPos = new window.THREE.Vector3(rightFootPos.x, rightBottomY, rightFootPos.z);
                     leftBottomPos.applyMatrix4(currentSceneInverseMatrix);
                     rightBottomPos.applyMatrix4(currentSceneInverseMatrix);
-                    
+
                     // Y轴：使用两脚中较低的 Y 值，确保阴影在脚底
                     shadowY = Math.min(leftBottomPos.y, rightBottomPos.y) + SHADOW_Y_OFFSET;
-                    
+
                     // X/Z轴：使用两脚的中点（如果 FIX_CENTER_XZ 为 false，当前固定为 true，此分支不会执行）
                     if (!FIX_CENTER_XZ) {
                         leftFootPos.applyMatrix4(currentSceneInverseMatrix);
@@ -231,21 +231,21 @@ class VRMManager {
                     const hipsBone = result.vrm.humanoid.getNormalizedBoneNode('hips');
                     if (hipsBone) {
                         hipsBone.updateMatrixWorld(true);
-                        
+
                         const hipsPos = new window.THREE.Vector3();
                         hipsBone.getWorldPosition(hipsPos);
-                        
+
                         // 转换为局部坐标
                         result.vrm.scene.updateMatrixWorld(true);
                         const currentSceneInverseMatrix = result.vrm.scene.matrixWorld.clone().invert();
                         hipsPos.applyMatrix4(currentSceneInverseMatrix);
-                        
+
                         // 使用 hips 的 X/Z 位置（如果 FIX_CENTER_XZ 为 false，当前固定为 true，此分支不会执行）
                         if (!FIX_CENTER_XZ) {
                             shadowX = hipsPos.x;
                             shadowZ = hipsPos.z;
                         }
-                        
+
                         // Y轴：使用本地空间包围盒的最低点（因为 hips 在腰部，不是脚底）
                         shadowY = localBodyBox.min.y + SHADOW_Y_OFFSET;
                     } else {
@@ -261,20 +261,20 @@ class VRMManager {
             // 如果没有 humanoid，使用本地空间包围盒的最低点
             shadowY = localBodyBox.min.y + SHADOW_Y_OFFSET;
         }
-        
+
         // 如果 FIX_CENTER_XZ 为 true，强制使用 (0, 0) 作为 X/Z
         if (FIX_CENTER_XZ) {
             shadowX = 0;
             shadowZ = 0;
         }
-        
+
         // 9. 设置阴影位置
         this._shadowMesh.position.set(shadowX, shadowY, shadowZ);
-        
+
         // 10. 添加到模型场景中
         result.vrm.scene.add(this._shadowMesh);
     }
-    
+
     /**
      * 清理阴影资源（纹理、材质、几何体、网格）
      */
@@ -286,13 +286,13 @@ class VRMManager {
             }
             this._shadowMesh = null;
         }
-        
+
         // 清理几何体
         if (this._shadowGeometry) {
             this._shadowGeometry.dispose();
             this._shadowGeometry = null;
         }
-        
+
         // 清理材质
         if (this._shadowMaterial) {
             if (this._shadowMaterial.map) {
@@ -307,7 +307,7 @@ class VRMManager {
             this._shadowMaterial.dispose();
             this._shadowMaterial = null;
         }
-        
+
         // 清理纹理（如果材质没有清理它）
         if (this._shadowTexture) {
             this._shadowTexture.dispose();
@@ -350,7 +350,11 @@ class VRMManager {
             }
 
             this._animationFrameId = requestAnimationFrame(animateLoop);
-            const delta = this.clock ? this.clock.getDelta() : 0.016;
+
+            // 获取时间增量并限制最大值，防止切屏或卡顿导致物理"爆炸"
+            let delta = this.clock ? this.clock.getDelta() : 0.016;
+            // 限制最大时间步长为 0.05 秒（20fps），防止物理飞逸
+            delta = Math.min(delta, 0.05);
 
             if (!this.animation && typeof window.VRMAnimation !== 'undefined') this._initModules();
 
@@ -364,27 +368,25 @@ class VRMManager {
                 if (this.currentModel.vrm.lookAt) {
                     this.currentModel.vrm.lookAt.target = this.camera;
                 }
-                
+
                 // 3. 物理更新
                 if (this.enablePhysics) {
                     this.currentModel.vrm.update(delta);
                 } else {
+                    // 物理完全禁用时（用户手动禁用），只更新视线和表情
                     if (this.currentModel.vrm.lookAt) this.currentModel.vrm.lookAt.update(delta);
                     if (this.currentModel.vrm.expressionManager) this.currentModel.vrm.expressionManager.update(delta);
                 }
-
-                
-                
             }
 
-            // 4. 交互系统更新（浮动按钮跟随等）
-            if (this.interaction) {
-                this.interaction.update(delta);
-            }
-
-            // 5. 动画更新
+            // 4. 动画更新
             if (this.animation) {
                 this.animation.update(delta);
+            }
+
+            // 5. 交互系统更新（浮动按钮跟随等）
+            if (this.interaction) {
+                this.interaction.update(delta);
             }
 
             // 6. 更新控制器
@@ -408,29 +410,29 @@ class VRMManager {
     async loadModel(modelUrl, options = {}) {
         this._initModules();
         if (!this.core) this.core = new window.VRMCore(this);
-        
+
         // 清理之前的阴影资源（如果存在旧模型）
         this._disposeShadowResources();
-        
+
         // 确保场景已初始化
         if (!this.scene || !this.camera || !this.renderer) {
             const canvasId = options.canvasId || 'vrm-canvas';
             const containerId = options.containerId || 'vrm-container';
-            
+
             const canvas = document.getElementById(canvasId);
             const container = document.getElementById(containerId);
-            
+
             if (canvas && container) {
                 await this.initThreeJS(canvasId, containerId);
             } else {
-                const errorMsg = window.t 
-                    ? window.t('vrm.error.sceneNotInitialized') 
+                const errorMsg = window.t
+                    ? window.t('vrm.error.sceneNotInitialized')
                     : `无法加载模型：场景未初始化。找不到 canvas(#${canvasId}) 或 container(#${containerId})。`;
                 throw new Error(errorMsg);
             }
         }
 
-        
+
         // 设置画布初始状态为透明，并添加 CSS 过渡效果
         if (this.renderer && this.renderer.domElement) {
             this.renderer.domElement.style.opacity = '0';
@@ -445,17 +447,17 @@ class VRMManager {
             this._calculateAndAddShadow(result);
             result.vrm.scene.visible = false;
         }
-        
+
         // 加载完保持 3D 对象不可见（防 T-Pose）
         if (result && result.vrm && result.vrm.scene) {
-            result.vrm.scene.visible = false; 
+            result.vrm.scene.visible = false;
         }
 
         if (!this._animationFrameId) this.startAnimateLoop();
 
         // 获取默认循环动画路径：优先从 options 传入，其次从配置读取，最后使用默认值
-        const DEFAULT_LOOP_ANIMATION = options.idleAnimation || 
-            window.lanlan_config?.vrmIdleAnimation || 
+        const DEFAULT_LOOP_ANIMATION = options.idleAnimation ||
+            window.lanlan_config?.vrmIdleAnimation ||
             '/static/vrm/animation/wait03.vrma';
 
         // 确保 animation 模块已初始化
@@ -466,16 +468,41 @@ class VRMManager {
         // 辅助函数：显示模型并淡入画布
         const showAndFadeIn = () => {
             if (this.currentModel?.vrm?.scene) {
-                if (this.currentModel.vrm.humanoid) {
-                    if (this.currentModel.vrm.humanoid.autoUpdateHumanBones !== undefined && !this.currentModel.vrm.humanoid.autoUpdateHumanBones) {
-                        this.currentModel.vrm.humanoid.autoUpdateHumanBones = true;
-                    }
-                    this.currentModel.vrm.humanoid.update();
+                // 启用物理
+                this.enablePhysics = true;
+
+                // 更新世界矩阵，确保骨骼位置正确
+                this.currentModel.vrm.scene.updateMatrixWorld(true);
+
+                const springBoneManager = this.currentModel.vrm.springBoneManager;
+                if (springBoneManager) {
+                    // 记录信息（调试用）
+                    const sceneRotY = this.currentModel.vrm.scene.rotation.y;
+                    console.log('[VRM] Scene rotation Y:', sceneRotY);
+
+                    // 减小碰撞体半径
+                    // 原因：UniVRM 导出 bug (#673) 导致碰撞体普遍过大
+                    // 50% 是经验值，修复所有测试模型
+                    // 参考：https://github.com/vrm-c/UniVRM/issues/673
+                    const COLLIDER_REDUCTION = 0.5;  // 可调整，经验默认值
+                    const collidersSet = springBoneManager.colliders;
+                    const colliders = collidersSet ? Array.from(collidersSet) : [];
+                    colliders.forEach(collider => {
+                        if (collider.shape?.radius !== undefined) {
+                            // 保存真正的原始半径（只在第一次）
+                            if (collider._rawOriginalRadius === undefined) {
+                                collider._rawOriginalRadius = collider.shape.radius;
+                            }
+                            // 应用基础缩减
+                            const reducedRadius = collider._rawOriginalRadius * COLLIDER_REDUCTION;
+                            collider.shape.radius = reducedRadius;
+                            // 保存缩减后的半径作为"工作半径"供场景缩放使用
+                            collider._originalRadius = reducedRadius;
+                        }
+                    });
+                    console.log(`[VRM] Reduced ${colliders.length} colliders by ${(1 - COLLIDER_REDUCTION) * 100}%`);
                 }
-                
-                if (this.currentModel.vrm.springBoneManager) {
-                    this.currentModel.vrm.springBoneManager.reset();
-                }
+
                 this.currentModel.vrm.scene.visible = true;
                 requestAnimationFrame(() => {
                     if (this.renderer && this.renderer.domElement) {
@@ -495,7 +522,7 @@ class VRMManager {
                     }
                     return;
                 }
-                
+
                 if (!this.animation) {
                     this._initModules();
                     if (!this.animation && typeof window.VRMAnimation === 'undefined') {
@@ -517,17 +544,17 @@ class VRMManager {
                         }
                     }
                 }
-                
+
                 if (this._retryTimerId) {
                     clearTimeout(this._retryTimerId);
                     this._retryTimerId = null;
                 }
-                
+
                 if (this.animation) {
                     try {
-                        await this.playVRMAAnimation(DEFAULT_LOOP_ANIMATION, { 
+                        await this.playVRMAAnimation(DEFAULT_LOOP_ANIMATION, {
                             loop: true,
-                            immediate: true 
+                            immediate: true
                         });
                         showAndFadeIn();
                     } catch (err) {
@@ -539,7 +566,7 @@ class VRMManager {
                     showAndFadeIn();
                 }
             };
-            
+
             // 将初始 setTimeout 的返回值赋值给 _retryTimerId，以便 dispose() 可以清理
             this._retryTimerId = setTimeout(() => {
                 this._retryTimerId = null; // 回调执行时清除引用
@@ -548,9 +575,9 @@ class VRMManager {
         } else {
             showAndFadeIn();
         }
-        
+
         if (this.expression) {
-            this.expression.setMood('neutral'); 
+            this.expression.setMood('neutral');
         }
         if (this.setupFloatingButtons) {
             this.setupFloatingButtons();
@@ -562,16 +589,16 @@ class VRMManager {
         if (!this.animation) this._initModules();
         if (this.animation) return this.animation.playVRMAAnimation(url, opts);
     }
-    
-    
+
+
     stopVRMAAnimation() {
         if (this.animation) this.animation.stopVRMAAnimation();
     }
-    onWindowResize() { 
+    onWindowResize() {
         if (!this.camera || !this.renderer) return;
-        
+
         let width, height;
-        
+
         if (this.container && this.container.clientWidth > 0 && this.container.clientHeight > 0) {
             width = this.container.clientWidth;
             height = this.container.clientHeight;
@@ -579,19 +606,61 @@ class VRMManager {
             width = window.innerWidth;
             height = window.innerHeight;
         }
-        
+
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
     }
-    getCurrentModel() { 
-        return this.currentModel; 
+    getCurrentModel() {
+        return this.currentModel;
     }
-    setModelPosition(x,y,z) { 
-        if(this.currentModel?.vrm?.scene) this.currentModel.vrm.scene.position.set(x,y,z); 
+    setModelPosition(x, y, z) {
+        if (this.currentModel?.vrm?.scene) this.currentModel.vrm.scene.position.set(x, y, z);
     }
-    setModelScale(x,y,z) { 
-        if(this.currentModel?.vrm?.scene) this.currentModel.vrm.scene.scale.set(x,y,z); 
+
+    /**
+     * 设置模型缩放，同时同步缩放 SpringBone 碰撞体半径
+     * @param {number} x - X 轴缩放
+     * @param {number} y - Y 轴缩放  
+     * @param {number} z - Z 轴缩放
+     */
+    setModelScale(x, y, z) {
+        if (!this.currentModel?.vrm?.scene) return;
+
+        // 使用统一缩放值（取 x 作为参考）
+        const scaleFactor = x;
+
+        // 1. 缩放场景
+        this.currentModel.vrm.scene.scale.set(x, y, z);
+
+        // 2. 同步缩放碰撞体半径
+        const springBoneManager = this.currentModel.vrm.springBoneManager;
+        if (springBoneManager) {
+            const colliders = springBoneManager.colliders
+                ? Array.from(springBoneManager.colliders)
+                : [];
+
+            colliders.forEach(collider => {
+                if (collider.shape?.radius !== undefined) {
+                    // 保存原始半径（只在第一次缩放时保存）
+                    if (collider._originalRadius === undefined) {
+                        collider._originalRadius = collider.shape.radius;
+                    }
+                    // 根据缩放因子调整半径
+                    collider.shape.radius = collider._originalRadius * scaleFactor;
+                }
+            });
+
+            console.log(`[VRM] Scaled ${colliders.length} colliders with factor ${scaleFactor.toFixed(3)}`);
+        }
+    }
+
+    /**
+     * 设置模型统一缩放（便捷方法）
+     * @param {number} scale - 统一缩放值
+     */
+    setModelScaleScalar(scale) {
+        this.setModelScale(scale, scale, scale);
     }
 
     /**
@@ -600,33 +669,33 @@ class VRMManager {
      */
     async dispose() {
         console.log('[VRM Manager] 开始完整清理 VRM 资源...');
-        
+
         // 1. 取消动画循环（最关键）
         if (this._animationFrameId) {
             cancelAnimationFrame(this._animationFrameId);
             this._animationFrameId = null;
         }
-        
+
         // 2. 清理 UI 更新循环
         if (this._uiUpdateLoopId) {
             cancelAnimationFrame(this._uiUpdateLoopId);
             this._uiUpdateLoopId = null;
         }
-        
+
         // 3. 清理重试定时器（loadModel 中的 tryPlayAnimation 重试）
         if (this._retryTimerId) {
             clearTimeout(this._retryTimerId);
             this._retryTimerId = null;
         }
-        
+
         // 4. 清理阴影资源
         this._disposeShadowResources();
-        
+
         // 5. 清理模型资源（调用 core.disposeVRM）
         if (this.core && typeof this.core.disposeVRM === 'function') {
             await this.core.disposeVRM();
         }
-        
+
         // 6. 清理动画模块（先停止动画，再清理资源）
         if (this.animation) {
             if (typeof this.animation.stopVRMAAnimation === 'function') {
@@ -636,7 +705,7 @@ class VRMManager {
                 this.animation.dispose();
             }
         }
-        
+
         // 7. 清理交互模块的定时器
         if (this.interaction) {
             if (this.interaction._hideButtonsTimer) {
@@ -657,14 +726,14 @@ class VRMManager {
                 this.interaction.cleanupDragAndZoom();
             }
         }
-        
+
         // 8. 清理场景中的所有对象（包括灯光）
         if (this.scene) {
             // 遍历并清理所有子对象
             while (this.scene.children.length > 0) {
                 const child = this.scene.children[0];
                 this.scene.remove(child);
-                
+
                 // 如果是可清理的对象，调用 dispose
                 if (child.geometry) child.geometry.dispose();
                 if (child.material) {
@@ -677,7 +746,7 @@ class VRMManager {
                             }
                         });
                     };
-                    
+
                     if (Array.isArray(child.material)) {
                         child.material.forEach(m => {
                             disposeMaterialTextures(m);
@@ -690,7 +759,7 @@ class VRMManager {
                 }
             }
         }
-        
+
         // 9. 清理渲染器（但不销毁 canvas，因为后续可能还要用）
         if (this.renderer) {
             // 清理所有纹理
@@ -701,7 +770,7 @@ class VRMManager {
                 this.renderer.domElement.style.opacity = '0';
             }
         }
-        
+
         // 10. 清理轨道控制器
         if (this.controls) {
             if (typeof this.controls.dispose === 'function') {
@@ -709,7 +778,7 @@ class VRMManager {
             }
             this.controls = null;
         }
-        
+
         // 11. 清理 UI 元素（浮动按钮、锁图标等）
         if (typeof this.cleanupUI === 'function') {
             this.cleanupUI();
@@ -733,7 +802,7 @@ class VRMManager {
             });
             this._coreWindowHandlers = [];
         }
-        
+
         // 清理 UI 模块的 handlers（VRMUIButtons 中注册的 resize, live2d-goodbye-click 等）
         // 注意：UI 模块有自己的 cleanupUI() 方法，但这里也清理以确保完整性
         if (this._uiWindowHandlers && this._uiWindowHandlers.length > 0) {
@@ -742,7 +811,7 @@ class VRMManager {
             });
             this._uiWindowHandlers = [];
         }
-        
+
         // 清理 Init 模块的 handlers（vrm-init.js 中的 visibilitychange 等）
         // 注意：Init 模块有自己的 cleanupVRMInit() 方法，但这里也清理以确保完整性
         if (this._initWindowHandlers && this._initWindowHandlers.length > 0) {
@@ -751,7 +820,7 @@ class VRMManager {
             });
             this._initWindowHandlers = [];
         }
-        
+
         // 12. 重置引用和状态
         this.currentModel = null;
         this.animationMixer = null;
@@ -763,10 +832,10 @@ class VRMManager {
         this.spotLight = null;
         this.canvas = null;
         this.container = null;
-        
+
         // 13. 重置初始化标志（确保下次切回 VRM 时会重新初始化）
         this._isInitialized = false;
-        
+
         console.log('[VRM Manager] VRM 资源清理完成');
     }
 }

@@ -6,9 +6,9 @@
 VRMManager.prototype.setupFloatingButtons = function () {
     // 如果是模型管理页面，直接禁止创建浮动按钮（在最开头检查，避免后续资源初始化）
     if (window.location.pathname.includes('model_manager')) {
-        return; 
+        return;
     }
-    
+
     // 清理旧的事件监听器（使用 UI 模块专用的 handlers 数组）
     if (!this._uiWindowHandlers) {
         this._uiWindowHandlers = [];
@@ -19,7 +19,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
         });
         this._uiWindowHandlers = [];
     }
-    
+
     // 清理旧的 document 事件监听器
     if (this._returnButtonDragHandlers) {
         document.removeEventListener('mousemove', this._returnButtonDragHandlers.mouseMove);
@@ -36,12 +36,12 @@ VRMManager.prototype.setupFloatingButtons = function () {
     if (old) old.remove();
 
     const buttonsContainer = document.createElement('div');
-    buttonsContainer.id = buttonsContainerId; 
+    buttonsContainer.id = buttonsContainerId;
     document.body.appendChild(buttonsContainer);
-    
+
     // 设置基础样式
     Object.assign(buttonsContainer.style, {
-        position: 'fixed', zIndex: '99999', pointerEvents: 'auto',  
+        position: 'fixed', zIndex: '99999', pointerEvents: 'auto',
         display: 'none', // 初始隐藏 (由 update loop 或 resize 控制显示)
         flexDirection: 'column', gap: '12px',
         visibility: 'visible', opacity: '1', transform: 'none'
@@ -49,11 +49,15 @@ VRMManager.prototype.setupFloatingButtons = function () {
     this._floatingButtonsContainer = buttonsContainer;
 
     const stopContainerEvent = (e) => { e.stopPropagation(); };
-    ['pointerdown','pointermove','pointerup','mousedown','mousemove','mouseup','touchstart','touchmove','touchend'].forEach(evt => {
+    ['pointerdown', 'pointermove', 'pointerup', 'mousedown', 'mousemove', 'mouseup', 'touchstart', 'touchmove', 'touchend'].forEach(evt => {
         buttonsContainer.addEventListener(evt, stopContainerEvent);
     });
 
     const applyResponsiveFloatingLayout = () => {
+        if (this._isInReturnState) {
+            buttonsContainer.style.display = 'none';
+            return;
+        }
         const isLocked = this.interaction && this.interaction.checkLocked ? this.interaction.checkLocked() : false;
         if (isLocked) {
             buttonsContainer.style.display = 'none';
@@ -81,11 +85,11 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
     const iconVersion = '?v=' + (window.APP_VERSION || '1.0.0');
     const buttonConfigs = [
-        { id: 'mic', emoji: '🎤', title: window.t ? window.t('buttons.voiceControl') : '语音控制', titleKey: 'buttons.voiceControl', hasPopup: true, toggle: true, separatePopupTrigger: true, iconOff: '/static/icons/mic_icon_off.png'+iconVersion, iconOn: '/static/icons/mic_icon_on.png'+iconVersion },
-        { id: 'screen', emoji: '🖥️', title: window.t ? window.t('buttons.screenShare') : '屏幕分享', titleKey: 'buttons.screenShare', hasPopup: true, toggle: true, separatePopupTrigger: true, iconOff: '/static/icons/screen_icon_off.png'+iconVersion, iconOn: '/static/icons/screen_icon_on.png'+iconVersion },
-        { id: 'agent', emoji: '🔨', title: window.t ? window.t('buttons.agentTools') : 'Agent工具', titleKey: 'buttons.agentTools', hasPopup: true, popupToggle: true, exclusive: 'settings', iconOff: '/static/icons/Agent_off.png'+iconVersion, iconOn: '/static/icons/Agent_on.png'+iconVersion },
-        { id: 'settings', emoji: '⚙️', title: window.t ? window.t('buttons.settings') : '设置', titleKey: 'buttons.settings', hasPopup: true, popupToggle: true, exclusive: 'agent', iconOff: '/static/icons/set_off.png'+iconVersion, iconOn: '/static/icons/set_on.png'+iconVersion },
-        { id: 'goodbye', emoji: '💤', title: window.t ? window.t('buttons.leave') : '请她离开', titleKey: 'buttons.leave', hasPopup: false, iconOff: '/static/icons/rest_off.png'+iconVersion, iconOn: '/static/icons/rest_on.png'+iconVersion }
+        { id: 'mic', emoji: '🎤', title: window.t ? window.t('buttons.voiceControl') : '语音控制', titleKey: 'buttons.voiceControl', hasPopup: true, toggle: true, separatePopupTrigger: true, iconOff: '/static/icons/mic_icon_off.png' + iconVersion, iconOn: '/static/icons/mic_icon_on.png' + iconVersion },
+        { id: 'screen', emoji: '🖥️', title: window.t ? window.t('buttons.screenShare') : '屏幕分享', titleKey: 'buttons.screenShare', hasPopup: true, toggle: true, separatePopupTrigger: true, iconOff: '/static/icons/screen_icon_off.png' + iconVersion, iconOn: '/static/icons/screen_icon_on.png' + iconVersion },
+        { id: 'agent', emoji: '🔨', title: window.t ? window.t('buttons.agentTools') : 'Agent工具', titleKey: 'buttons.agentTools', hasPopup: true, popupToggle: true, exclusive: 'settings', iconOff: '/static/icons/Agent_off.png' + iconVersion, iconOn: '/static/icons/Agent_on.png' + iconVersion },
+        { id: 'settings', emoji: '⚙️', title: window.t ? window.t('buttons.settings') : '设置', titleKey: 'buttons.settings', hasPopup: true, popupToggle: true, exclusive: 'agent', iconOff: '/static/icons/set_off.png' + iconVersion, iconOn: '/static/icons/set_on.png' + iconVersion },
+        { id: 'goodbye', emoji: '💤', title: window.t ? window.t('buttons.leave') : '请她离开', titleKey: 'buttons.leave', hasPopup: false, iconOff: '/static/icons/rest_off.png' + iconVersion, iconOn: '/static/icons/rest_on.png' + iconVersion }
     ];
 
     this._floatingButtons = this._floatingButtons || {};
@@ -98,12 +102,12 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
         const btnWrapper = document.createElement('div');
         Object.assign(btnWrapper.style, { position: 'relative', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'auto' });
-        ['pointerdown','mousedown','touchstart'].forEach(evt => btnWrapper.addEventListener(evt, e => e.stopPropagation()));
+        ['pointerdown', 'mousedown', 'touchstart'].forEach(evt => btnWrapper.addEventListener(evt, e => e.stopPropagation()));
 
         const btn = document.createElement('div');
         btn.id = `vrm-btn-${config.id}`;
         btn.className = 'vrm-floating-btn';
-        
+
         Object.assign(btn.style, {
             width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.65)',
             backdropFilter: 'saturate(180%) blur(20px)', border: '1px solid rgba(255, 255, 255, 0.18)',
@@ -118,11 +122,11 @@ VRMManager.prototype.setupFloatingButtons = function () {
         if (config.iconOff && config.iconOn) {
             const imgContainer = document.createElement('div');
             Object.assign(imgContainer.style, { position: 'relative', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' });
-            
+
             imgOff = document.createElement('img');
             imgOff.src = config.iconOff; imgOff.alt = config.emoji;
             Object.assign(imgOff.style, { position: 'absolute', width: '48px', height: '48px', objectFit: 'contain', pointerEvents: 'none', opacity: '1', transition: 'opacity 0.3s ease' });
-            
+
             imgOn = document.createElement('img');
             imgOn.src = config.iconOn; imgOn.alt = config.emoji;
             Object.assign(imgOn.style, { position: 'absolute', width: '48px', height: '48px', objectFit: 'contain', pointerEvents: 'none', opacity: '0', transition: 'opacity 0.3s ease' });
@@ -142,7 +146,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
             btn.addEventListener('mouseenter', () => {
                 btn.style.transform = 'scale(1.05)';
                 btn.style.background = 'rgba(255, 255, 255, 0.8)';
-                
+
                 // 检查是否有单独的弹窗触发器且弹窗已打开
                 if (config.separatePopupTrigger) {
                     const popup = document.getElementById(`vrm-popup-${config.id}`);
@@ -152,16 +156,16 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
                 if (imgOff && imgOn) { imgOff.style.opacity = '0'; imgOn.style.opacity = '1'; }
             });
-            
+
             btn.addEventListener('mouseleave', () => {
                 btn.style.transform = 'scale(1)';
                 const isActive = btn.dataset.active === 'true';
                 const popup = document.getElementById(`vrm-popup-${config.id}`);
                 const isPopupVisible = popup && popup.style.display === 'flex' && popup.style.opacity === '1';
-                
+
                 // 逻辑同 Live2D：如果是 separatePopupTrigger，只看 active；否则 active 或 popup 显示都算激活
-                const shouldShowOnIcon = config.separatePopupTrigger 
-                    ? isActive 
+                const shouldShowOnIcon = config.separatePopupTrigger
+                    ? isActive
                     : (isActive || isPopupVisible);
 
                 btn.style.background = shouldShowOnIcon ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.65)';
@@ -182,7 +186,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
                         if (btn.dataset.active !== 'true') {
                             this.setButtonActive(config.id, true);
                         }
-                        return; 
+                        return;
                     }
                 }
                 if (config.id === 'screen') {
@@ -206,11 +210,11 @@ VRMManager.prototype.setupFloatingButtons = function () {
                 }
 
                 const currentActive = btn.dataset.active === 'true';
-                let targetActive = !currentActive; 
-                
+                let targetActive = !currentActive;
+
                 if (config.id === 'mic' || config.id === 'screen') {
-                   window.dispatchEvent(new CustomEvent(`live2d-${config.id}-toggle`, {detail:{active:targetActive}}));
-                   this.setButtonActive(config.id, targetActive);
+                    window.dispatchEvent(new CustomEvent(`live2d-${config.id}-toggle`, { detail: { active: targetActive } }));
+                    this.setButtonActive(config.id, targetActive);
                 }
                 else if (config.id === 'goodbye') {
                     window.dispatchEvent(new CustomEvent('live2d-goodbye-click'));
@@ -231,7 +235,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
             const popup = this.createPopup(config.id);
             const triggerBtn = document.createElement('div');
-            triggerBtn.innerText = '▶'; 
+            triggerBtn.innerText = '▶';
             Object.assign(triggerBtn.style, {
                 width: '24px', height: '24px', borderRadius: '50%',
                 background: 'rgba(255, 255, 255, 0.65)', backdropFilter: 'saturate(180%) blur(20px)',
@@ -243,7 +247,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
             });
 
             const stopTriggerEvent = (e) => { e.stopPropagation(); };
-            ['pointerdown','mousedown','touchstart'].forEach(evt => triggerBtn.addEventListener(evt, stopTriggerEvent));
+            ['pointerdown', 'mousedown', 'touchstart'].forEach(evt => triggerBtn.addEventListener(evt, stopTriggerEvent));
 
             triggerBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -260,8 +264,8 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
             const triggerWrapper = document.createElement('div');
             triggerWrapper.style.position = 'relative';
-            ['pointerdown','mousedown','touchstart'].forEach(evt => triggerWrapper.addEventListener(evt, stopTriggerEvent));
-            
+            ['pointerdown', 'mousedown', 'touchstart'].forEach(evt => triggerWrapper.addEventListener(evt, stopTriggerEvent));
+
             triggerWrapper.appendChild(triggerBtn);
             triggerWrapper.appendChild(popup);
             btnWrapper.appendChild(triggerWrapper);
@@ -277,9 +281,9 @@ VRMManager.prototype.setupFloatingButtons = function () {
                 if (isToggling) {
                     return;
                 }
-                const isPopupVisible = popup.style.display === 'flex' && 
-                                      popup.style.opacity !== '0' && 
-                                      popup.style.opacity !== '';
+                const isPopupVisible = popup.style.display === 'flex' &&
+                    popup.style.opacity !== '0' &&
+                    popup.style.opacity !== '';
                 if (!isPopupVisible && config.exclusive) {
                     this.closePopupById(config.exclusive);
                 }
@@ -299,17 +303,17 @@ VRMManager.prototype.setupFloatingButtons = function () {
     const goodbyeHandler = () => {
         // 设置返回状态标志，阻止更新循环显示锁图标和按钮
         this._isInReturnState = true;
-        
+
         // 1. 隐藏主按钮组
         if (this._floatingButtonsContainer) {
             this._floatingButtonsContainer.style.display = 'none';
         }
-        
+
         // 2. 隐藏锁图标
         if (this._vrmLockIcon) {
             this._vrmLockIcon.style.display = 'none';
         }
-        
+
         // 3. 显示"请她回来"按钮（固定在屏幕中央）
         if (this._returnButtonContainer) {
             // 清除所有定位样式
@@ -317,16 +321,16 @@ VRMManager.prototype.setupFloatingButtons = function () {
             this._returnButtonContainer.style.top = '';
             this._returnButtonContainer.style.right = '';
             this._returnButtonContainer.style.bottom = '';
-            
+
             // 使用 transform 居中定位（屏幕中央）
             this._returnButtonContainer.style.left = '50%';
             this._returnButtonContainer.style.top = '50%';
             this._returnButtonContainer.style.transform = 'translate(-50%, -50%)';
-            
+
             this._returnButtonContainer.style.display = 'flex';
         }
     };
-    
+
     // 追踪 goodbye 事件监听器以便清理
     this._uiWindowHandlers.push({ event: 'live2d-goodbye-click', handler: goodbyeHandler });
     window.addEventListener('live2d-goodbye-click', goodbyeHandler);
@@ -391,16 +395,16 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
             const isLocked = this.interaction && this.interaction.checkLocked ? this.interaction.checkLocked() : false;
             // 更新锁图标背景图片（确保显示正确的锁定/解锁状态）
-            this._vrmLockIcon.style.backgroundImage = isLocked 
-                ? 'url(/static/icons/locked_icon.png)' 
+            this._vrmLockIcon.style.backgroundImage = isLocked
+                ? 'url(/static/icons/locked_icon.png)'
                 : 'url(/static/icons/unlocked_icon.png)';
             if (!isLocked) {
                 this._vrmLockIcon.style.display = 'block';
             }
         }
     };
-    
-    
+
+
     // 追踪 return 事件监听器以便清理
     this._uiWindowHandlers.push({ event: 'vrm-return-click', handler: returnHandler });
     this._uiWindowHandlers.push({ event: 'live2d-return-click', handler: returnHandler });
@@ -410,12 +414,12 @@ VRMManager.prototype.setupFloatingButtons = function () {
     const returnButtonContainer = document.createElement('div');
     returnButtonContainer.id = 'vrm-return-button-container';
     Object.assign(returnButtonContainer.style, {
-        position: 'fixed', 
-        left: '50%', 
-        top: '50%', 
+        position: 'fixed',
+        left: '50%',
+        top: '50%',
         transform: 'translate(-50%, -50%)',  // 居中定位
         zIndex: '99999',
-        pointerEvents: 'auto', 
+        pointerEvents: 'auto',
         display: 'none'
     });
 
@@ -463,7 +467,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
     this._returnButtonContainer = returnButtonContainer;
     this.setupVRMReturnButtonDrag(returnButtonContainer);
-    
+
     // 添加呼吸灯动画样式（与 Live2D 保持一致）
     this._addReturnButtonBreathingAnimation();
 
@@ -472,7 +476,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
 
     const lockIcon = document.createElement('div');
     lockIcon.id = 'vrm-lock-icon';
-    lockIcon.dataset.vrmLock = 'true'; 
+    lockIcon.dataset.vrmLock = 'true';
     document.body.appendChild(lockIcon);
     this._vrmLockIcon = lockIcon;
 
@@ -485,20 +489,20 @@ VRMManager.prototype.setupFloatingButtons = function () {
     });
 
     const toggleLock = (e) => {
-        if(e) { e.preventDefault(); e.stopPropagation(); }
-        
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+
         // 检查 interaction 是否存在
         if (!this.interaction) {
             console.warn('[VRM UI Buttons] interaction 未初始化，无法切换锁定状态');
             return;
         }
-        
+
         // 使用 checkLocked() 方法获取当前锁定状态（如果可用），否则回退到 isLocked 属性
         const currentLocked = (this.interaction && typeof this.interaction.checkLocked === 'function')
             ? Boolean(this.interaction.checkLocked())
             : Boolean(this.interaction?.isLocked);
         const newLockedState = !currentLocked;
-        
+
         if (this.core && typeof this.core.setLocked === 'function') {
             // 优先使用 core.setLocked（它会调用 interaction.setLocked）
             this.core.setLocked(newLockedState);
@@ -511,7 +515,7 @@ VRMManager.prototype.setupFloatingButtons = function () {
             // interaction handlers 会通过 checkLocked() 检查这个标志
             this.interaction.isLocked = newLockedState;
         }
-        
+
         // 可选：使用 CSS 类来标记锁定状态（用于样式或调试，但不影响 pointerEvents）
         // interaction handlers 会通过 checkLocked() 来尊重 isLocked 标志，而不是依赖 CSS 类
         const vrmCanvas = document.getElementById('vrm-canvas');
@@ -522,42 +526,42 @@ VRMManager.prototype.setupFloatingButtons = function () {
                 vrmCanvas.classList.remove('ui-locked');
             }
         }
-        
+
         // 更新锁图标样式（使用 checkLocked() 方法获取当前状态，如果可用）
         const isLocked = (this.interaction && typeof this.interaction.checkLocked === 'function')
             ? Boolean(this.interaction.checkLocked())
             : Boolean(this.interaction?.isLocked);
         lockIcon.style.backgroundImage = isLocked ? 'url(/static/icons/locked_icon.png)' : 'url(/static/icons/unlocked_icon.png)';
-        
+
         // 获取当前的基础缩放值（如果已设置）
         const currentTransform = lockIcon.style.transform || '';
         const baseScaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
         const baseScale = baseScaleMatch ? parseFloat(baseScaleMatch[1]) : 1.0;
-        
+
         // 在基础缩放的基础上进行点击动画
         lockIcon.style.transform = `scale(${baseScale * 0.9})`;
         setTimeout(() => {
             // 恢复时使用基础缩放值（更新循环会持续更新这个值）
             lockIcon.style.transform = `scale(${baseScale})`;
         }, 100);
-        
+
         lockIcon.style.display = 'block';
-        
+
         // 刷新浮动按钮布局，立即反映新的锁定状态
         applyResponsiveFloatingLayout();
     };
 
     lockIcon.addEventListener('mousedown', toggleLock);
-    lockIcon.addEventListener('touchstart', toggleLock, {passive:false});
+    lockIcon.addEventListener('touchstart', toggleLock, { passive: false });
 
     // 启动更新循环
     this._startUIUpdateLoop();
-    
+
     // 页面加载时直接显示按钮（使用响应式布局函数，会检查锁定状态和视口）
     setTimeout(() => {
         // 使用响应式布局函数，会检查锁定状态和视口
         applyResponsiveFloatingLayout();
-        
+
         // 显示锁图标（检查锁定状态，只有在未锁定时才显示）
         if (this._vrmLockIcon) {
             const isLocked = this.interaction && this.interaction.checkLocked ? this.interaction.checkLocked() : false;
@@ -566,18 +570,18 @@ VRMManager.prototype.setupFloatingButtons = function () {
             }
         }
     }, 100); // 延迟100ms确保位置已计算
-    
+
     // 通知外部浮动按钮已就绪
     window.dispatchEvent(new CustomEvent('live2d-floating-buttons-ready'));
 };
 
 // 循环更新位置 (保持跟随)
-VRMManager.prototype._startUIUpdateLoop = function() {
+VRMManager.prototype._startUIUpdateLoop = function () {
     // 防止重复启动循环
     if (this._uiUpdateLoopId !== null && this._uiUpdateLoopId !== undefined) {
         return; // 循环已在运行
     }
-    
+
     // 计算可见按钮数量（移动端隐藏 agent 和 goodbye 按钮）
     const getVisibleButtonCount = () => {
         const buttonConfigs = [
@@ -608,7 +612,7 @@ VRMManager.prototype._startUIUpdateLoop = function() {
         if (this._uiUpdateLoopId === null || this._uiUpdateLoopId === undefined) {
             return;
         }
-        
+
         if (!this.currentModel || !this.currentModel.vrm) {
             if (this._uiUpdateLoopId !== null && this._uiUpdateLoopId !== undefined) {
                 this._uiUpdateLoopId = requestAnimationFrame(update);
@@ -623,7 +627,7 @@ VRMManager.prototype._startUIUpdateLoop = function() {
             }
             return;
         }
-        
+
         // 移动端跳过位置更新，使用 CSS 固定定位
         if (window.isMobileWidth()) {
             const now = performance.now();
@@ -635,10 +639,10 @@ VRMManager.prototype._startUIUpdateLoop = function() {
             }
             lastMobileUpdate = now;
         }
-        
+
         const buttonsContainer = document.getElementById('vrm-floating-buttons')
         const lockIcon = this._vrmLockIcon;
-        
+
         if (!this.camera || !this.renderer) {
             if (this._uiUpdateLoopId !== null && this._uiUpdateLoopId !== undefined) {
                 this._uiUpdateLoopId = requestAnimationFrame(update);
@@ -719,7 +723,7 @@ VRMManager.prototype._startUIUpdateLoop = function() {
             // 重新计算可见按钮数量和基准工具栏高度（响应移动端/桌面端切换）
             const visibleCount = getVisibleButtonCount();
             const baseToolbarHeight = baseButtonSize * visibleCount + baseGap * (visibleCount - 1);
-            
+
             // 计算目标工具栏高度（模型高度的一半，与 Live2D 保持一致）
             const targetToolbarHeight = modelScreenHeight / 2;
 
@@ -749,10 +753,10 @@ VRMManager.prototype._startUIUpdateLoop = function() {
                 // 统一使用 canvasRect 的宽高计算屏幕坐标，确保在缩放/嵌入场景下定位准确
                 const screenX = (btnPos.x * 0.5 + 0.5) * canvasWidth;
                 const screenY = (-(btnPos.y * 0.5) + 0.5) * canvasHeight;
-                
+
                 // 检测移动端布局（与 applyResponsiveFloatingLayout 保持一致）
                 const isMobile = window.isMobileWidth();
-                
+
                 // 应用缩放到容器
                 // 移动端使用 bottom/right 定位，transform-origin 需要相应调整
                 if (isMobile) {
@@ -769,26 +773,26 @@ VRMManager.prototype._startUIUpdateLoop = function() {
                     // 注意：screenX/screenY 是相对于 canvas 的坐标，需要加上 canvas 的偏移量
                     const targetX = canvasRect.left + screenX;
                     const targetY = canvasRect.top + screenY - 50;  // 从 -100 减小到 -50，更靠近模型
-                    
+
                     // 使用缩放后的实际工具栏高度和宽度（用于边界限制）
                     const actualToolbarHeight = baseToolbarHeight * scale;
                     const actualToolbarWidth = 48 * scale;  // 按钮宽度
-                    
+
                     // 屏幕边缘限制（参考 Live2D 的实现）
                     // 使用窗口尺寸进行边界限制（因为按钮是相对于窗口定位的）
                     const minMargin = 10;  // 最小边距
                     const windowWidth = window.innerWidth;
                     const windowHeight = window.innerHeight;
-                    
+
                     // X轴边界限制：确保按钮容器不超出屏幕右边界
                     const maxX = windowWidth - actualToolbarWidth - minMargin;
                     const clampedX = Math.max(minMargin, Math.min(targetX, maxX));
-                    
+
                     // Y轴边界限制：确保按钮容器不超出屏幕上下边界
                     const minY = minMargin;
                     const maxY = windowHeight - actualToolbarHeight - minMargin;
                     const clampedY = Math.max(minY, Math.min(targetY, maxY));
-                    
+
                     buttonsContainer.style.left = `${clampedX}px`;
                     buttonsContainer.style.top = `${clampedY}px`;
                 }
@@ -809,8 +813,8 @@ VRMManager.prototype._startUIUpdateLoop = function() {
                 headNode.updateWorldMatrix(true, false);
                 const lockPos = new window.THREE.Vector3();
                 headNode.getWorldPosition(lockPos);
-                lockPos.x += 0.1; 
-                lockPos.y -= 0.55; 
+                lockPos.x += 0.1;
+                lockPos.y -= 0.55;
                 lockPos.project(this.camera);
                 // 统一使用 canvasRect 的宽高计算屏幕坐标
                 const lockScreenX = (lockPos.x * 0.5 + 0.5) * canvasWidth;
@@ -818,24 +822,24 @@ VRMManager.prototype._startUIUpdateLoop = function() {
                 // 加上 canvas 的偏移量，转换为窗口坐标
                 const targetLockX = canvasRect.left + lockScreenX;
                 const targetLockY = canvasRect.top + lockScreenY;
-                
+
                 // 应用缩放到锁图标（使用与按钮相同的缩放比例）
                 const baseLockIconSize = 44;  // 锁图标基准尺寸 44px x 44px
                 lockIcon.style.transformOrigin = 'center center';
                 lockIcon.style.transform = `scale(${scale})`;
-                
+
                 // 使用缩放后的实际尺寸（用于边界限制）
                 const actualLockIconSize = baseLockIconSize * scale;
                 const minMargin = 10;  // 最小边距
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
-                
+
                 // 屏幕边缘限制（使用窗口尺寸）
                 const maxLockX = windowWidth - actualLockIconSize - minMargin;
                 const maxLockY = windowHeight - actualLockIconSize - minMargin;
                 const clampedLockX = Math.max(minMargin, Math.min(targetLockX, maxLockX));
                 const clampedLockY = Math.max(minMargin, Math.min(targetLockY, maxLockY));
-                
+
                 lockIcon.style.left = `${clampedLockX}px`;
                 lockIcon.style.top = `${clampedLockY}px`;
                 lockIcon.style.display = 'block';
@@ -846,13 +850,13 @@ VRMManager.prototype._startUIUpdateLoop = function() {
                 console.debug('[VRM UI] 更新循环单帧异常:', error);
             }
         }
-        
+
         // 继续下一帧（只有在循环未被取消时才重新调度）
         if (this._uiUpdateLoopId !== null && this._uiUpdateLoopId !== undefined) {
             this._uiUpdateLoopId = requestAnimationFrame(update);
         }
     };
-    
+
     // 启动循环（存储初始 RAF ID）
     this._uiUpdateLoopId = requestAnimationFrame(update);
 };
@@ -869,17 +873,17 @@ VRMManager.prototype.setupVRMReturnButtonDrag = function (returnButtonContainer)
         isDragging = true;
         dragStartX = clientX;
         dragStartY = clientY;
-        
+
         // 获取当前容器的实际位置（考虑居中定位）
         const rect = returnButtonContainer.getBoundingClientRect();
         containerStartX = rect.left;
         containerStartY = rect.top;
-        
+
         // 清除 transform，改用像素定位
         returnButtonContainer.style.transform = 'none';
         returnButtonContainer.style.left = `${containerStartX}px`;
         returnButtonContainer.style.top = `${containerStartY}px`;
-        
+
         returnButtonContainer.setAttribute('data-dragging', 'false');
         returnButtonContainer.style.cursor = 'grabbing';
     };
@@ -912,26 +916,26 @@ VRMManager.prototype.setupVRMReturnButtonDrag = function (returnButtonContainer)
             e.preventDefault(); handleStart(e.clientX, e.clientY);
         }
     });
-    
+
     // 保存 document 级别的事件监听器引用，以便后续清理
     this._returnButtonDragHandlers = {
         mouseMove: (e) => handleMove(e.clientX, e.clientY),
         mouseUp: handleEnd,
         touchMove: (e) => {
-            if(isDragging) { e.preventDefault(); const touch = e.touches[0]; handleMove(touch.clientX, touch.clientY); }
+            if (isDragging) { e.preventDefault(); const touch = e.touches[0]; handleMove(touch.clientX, touch.clientY); }
         },
         touchEnd: handleEnd
     };
-    
+
     document.addEventListener('mousemove', this._returnButtonDragHandlers.mouseMove);
     document.addEventListener('mouseup', this._returnButtonDragHandlers.mouseUp);
-    
+
     returnButtonContainer.addEventListener('touchstart', (e) => {
         if (returnButtonContainer.contains(e.target)) {
             e.preventDefault(); const touch = e.touches[0]; handleStart(touch.clientX, touch.clientY);
         }
     });
-    document.addEventListener('touchmove', this._returnButtonDragHandlers.touchMove, {passive: false});
+    document.addEventListener('touchmove', this._returnButtonDragHandlers.touchMove, { passive: false });
     document.addEventListener('touchend', this._returnButtonDragHandlers.touchEnd);
     returnButtonContainer.style.cursor = 'grab';
 };
@@ -939,7 +943,7 @@ VRMManager.prototype.setupVRMReturnButtonDrag = function (returnButtonContainer)
 /**
  * 添加"请她回来"按钮的呼吸灯动画效果（与 Live2D 保持一致）
  */
-VRMManager.prototype._addReturnButtonBreathingAnimation = function() {
+VRMManager.prototype._addReturnButtonBreathingAnimation = function () {
     // 检查是否已经添加过样式
     if (document.getElementById('vrm-return-button-breathing-styles')) {
         return;
@@ -972,19 +976,19 @@ VRMManager.prototype._addReturnButtonBreathingAnimation = function() {
 /**
  * 清理VRM UI元素
  */
-VRMManager.prototype.cleanupUI = function() {
+VRMManager.prototype.cleanupUI = function () {
     // 取消 UI 更新循环（防止内存泄漏）
     if (this._uiUpdateLoopId !== null && this._uiUpdateLoopId !== undefined) {
         cancelAnimationFrame(this._uiUpdateLoopId);
         this._uiUpdateLoopId = null;
     }
-    
+
     const vrmButtons = document.getElementById('vrm-floating-buttons');
     if (vrmButtons) vrmButtons.remove();
     document.querySelectorAll('#vrm-lock-icon').forEach(el => el.remove());
     const vrmReturnBtn = document.getElementById('vrm-return-button-container');
     if (vrmReturnBtn) vrmReturnBtn.remove();
-    
+
     // 移除 window 级别的事件监听器，防止内存泄漏（使用 UI 模块专用的 handlers 数组）
     if (this._uiWindowHandlers && this._uiWindowHandlers.length > 0) {
         this._uiWindowHandlers.forEach(({ event, handler }) => {
@@ -992,7 +996,7 @@ VRMManager.prototype.cleanupUI = function() {
         });
         this._uiWindowHandlers = [];
     }
-    
+
     // 移除 document 级别的事件监听器，防止内存泄漏
     if (this._returnButtonDragHandlers) {
         document.removeEventListener('mousemove', this._returnButtonDragHandlers.mouseMove);
@@ -1001,7 +1005,7 @@ VRMManager.prototype.cleanupUI = function() {
         document.removeEventListener('touchend', this._returnButtonDragHandlers.touchEnd);
         this._returnButtonDragHandlers = null;
     }
-    
+
     // 清理窗口检查定时器（防止内存泄漏）
     if (this._windowCheckTimers) {
         Object.keys(this._windowCheckTimers).forEach(url => {
@@ -1011,12 +1015,12 @@ VRMManager.prototype.cleanupUI = function() {
         });
         this._windowCheckTimers = {};
     }
-    
+
     // 关闭所有设置窗口
     if (typeof this.closeAllSettingsWindows === 'function') {
         this.closeAllSettingsWindows();
     }
-    
+
     if (window.lanlan_config) window.lanlan_config.vrm_model = null;
     this._vrmLockIcon = null;
     this._floatingButtons = null;
@@ -1028,7 +1032,7 @@ VRMManager.prototype.cleanupUI = function() {
  * @param {string} buttonId - 按钮ID（如 'mic', 'screen', 'agent', 'settings' 等）
  * @param {boolean} active - 是否激活
  */
-VRMManager.prototype.setButtonActive = function(buttonId, active) {
+VRMManager.prototype.setButtonActive = function (buttonId, active) {
     const buttonData = this._floatingButtons && this._floatingButtons[buttonId];
     if (!buttonData || !buttonData.button) return;
 
@@ -1052,7 +1056,7 @@ VRMManager.prototype.setButtonActive = function(buttonId, active) {
 /**
  * 【统一状态管理】重置所有浮动按钮到默认状态
  */
-VRMManager.prototype.resetAllButtons = function() {
+VRMManager.prototype.resetAllButtons = function () {
     if (!this._floatingButtons) return;
 
     Object.keys(this._floatingButtons).forEach(btnId => {

@@ -13,17 +13,17 @@ if (!THREE) {
 class VRMInteraction {
     constructor(manager) {
         this.manager = manager;
-        
+
         // 拖拽和缩放相关
         this.isDragging = false;
-        this.dragMode = null; 
+        this.dragMode = null;
         this.previousMousePosition = { x: 0, y: 0 };
-        this.isLocked = false; 
-        this._isInitializingDragAndZoom = false; 
-        this._initTimerId = null; 
+        this.isLocked = false;
+        this._isInitializingDragAndZoom = false;
+        this._initTimerId = null;
         this._initRetryCount = 0;
         this._maxInitRetries = 50; // 最多重试50次（约5秒）
-        
+
         // 拖拽相关事件处理器引用（用于清理）
         this.mouseDownHandler = null;
         this.mouseUpHandler = null;
@@ -32,14 +32,14 @@ class VRMInteraction {
         this.mouseEnterHandler = null;
         this.dragHandler = null;
         this.wheelHandler = null;
-        
+
         // 鼠标跟踪相关
         this.mouseTrackingEnabled = false;
         this.mouseMoveHandler = null;
 
         // 开启"始终面朝相机" 
         this.enableFaceCamera = true;
-        
+
         // 浮动按钮鼠标跟踪缓存（用于性能优化）
         this._cachedBox = null;
         this._cachedCorners = null;
@@ -47,20 +47,20 @@ class VRMInteraction {
         this._floatingButtonsPendingFrame = null; // RAF ID，用于取消
         this._lastModelUpdateTime = 0;
     }
-    
-    
+
+
     /**
      * 【修改】初始化拖拽和缩放功能
      * 已移除所有导致报错的 LookAt/mouseNDC 代码
      */
     initDragAndZoom() {
         if (!this.manager.renderer) return;
-        
+
         // 如果已经在等待初始化，直接返回（防止重复定时器）
         if (this._isInitializingDragAndZoom) {
             return;
         }
-        
+
         // 确保 camera 已初始化
         if (!this.manager.camera) {
             // 设置标记位，防止重复触发
@@ -84,14 +84,14 @@ class VRMInteraction {
             }, 100);
             return;
         }
-        
+
         // camera 已就绪，清除标记位和定时器
         this._isInitializingDragAndZoom = false;
         if (this._initTimerId !== null) {
             clearTimeout(this._initTimerId);
             this._initTimerId = null;
         }
-        
+
         const canvas = this.manager.renderer.domElement;
         if (!THREE) {
             console.error('[VRM Interaction] THREE.js 未加载，无法初始化拖拽和缩放');
@@ -135,7 +135,7 @@ class VRMInteraction {
 
             if (this.dragMode === 'pan' && this.manager.currentModel && this.manager.currentModel.scene) {
                 // 平移速度
-                const panSpeed = 0.01; 
+                const panSpeed = 0.01;
                 const right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.manager.camera.quaternion);
                 const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.manager.camera.quaternion);
 
@@ -158,7 +158,7 @@ class VRMInteraction {
         this.mouseUpHandler = async (e) => {
             if (this.isDragging) {
                 e.preventDefault();
-+               e.stopPropagation();
+                +               e.stopPropagation();
                 this.isDragging = false;
                 this.dragMode = null;
                 canvas.style.cursor = 'grab';
@@ -167,7 +167,7 @@ class VRMInteraction {
                 await this._savePositionAfterInteraction();
             }
         };
-        
+
         // 5. 鼠标进入
         this.mouseEnterHandler = () => {
             canvas.style.cursor = 'grab';
@@ -176,31 +176,31 @@ class VRMInteraction {
         // 6. 滚轮缩放
         this.wheelHandler = (e) => {
             if (this.checkLocked() || !this.manager.currentModel) return;
-            
+
             // 检查事件目标是否是 canvas 或其子元素，如果不是则不拦截事件（允许聊天区域正常滚动）
             const canvasEl = this.manager.renderer?.domElement;
             if (!canvasEl) return;
-            
+
             const target = e.target;
             // 检查目标是否是 canvas 本身或其子元素
             const isCanvasOrDescendant = target === canvasEl || canvasEl.contains(target);
-            
+
             // 只有当事件发生在 canvas 或其子元素上时，才拦截事件
             if (!isCanvasOrDescendant) {
                 return; // 不拦截，允许事件继续传播到聊天区域
             }
-            
+
             e.preventDefault();
             e.stopPropagation();
-            
+
             if (!THREE) {
                 console.error('[VRM Interaction] THREE.js 未加载，无法处理滚轮缩放');
                 return;
             }
-            
+
             const delta = e.deltaY;
             const zoomSpeed = 0.05;
-            const zoomFactor = delta > 0 ? (1 + zoomSpeed) : (1 - zoomSpeed); 
+            const zoomFactor = delta > 0 ? (1 + zoomSpeed) : (1 - zoomSpeed);
 
             if (this.manager.currentModel.scene && this.manager.camera) {
                 const modelCenter = new THREE.Vector3();
@@ -208,23 +208,23 @@ class VRMInteraction {
                     modelCenter.copy(this.manager.controls.target);
                 } else {
                     this.manager.currentModel.scene.getWorldPosition(modelCenter);
-                    modelCenter.y += 1.0; 
+                    modelCenter.y += 1.0;
                 }
 
                 const oldDistance = this.manager.camera.position.distanceTo(modelCenter);
-                const minDist = 2.0;  // 限制最小距离，防止放大后移动时只能看到腿
-                const maxDist = 20.0; 
+                const minDist = 0.5;  // 限制最小距离，防止放大后移动时只能看到腿
+                const maxDist = 20.0;
 
                 let newDistance = oldDistance * zoomFactor;
                 newDistance = Math.max(minDist, Math.min(maxDist, newDistance));
-                
+
                 const direction = new THREE.Vector3()
                     .subVectors(this.manager.camera.position, modelCenter)
                     .normalize();
 
                 this.manager.camera.position.copy(modelCenter)
                     .add(direction.multiplyScalar(newDistance));
-                
+
                 if (this.manager.controls && this.manager.controls.update) {
                     this.manager.controls.update();
                 }
@@ -237,7 +237,7 @@ class VRMInteraction {
         this.auxClickHandler = (e) => {
             if (e.button === 1) { e.preventDefault(); e.stopPropagation(); }
         };
-        
+
         // 绑定事件
         canvas.addEventListener('mousedown', this.mouseDownHandler);
         document.addEventListener('mousemove', this.dragHandler); // 绑定到 document 以支持拖出画布
@@ -247,8 +247,8 @@ class VRMInteraction {
         this._wheelListenerOptions = { passive: false, capture: true };
         canvas.addEventListener('wheel', this.wheelHandler, this._wheelListenerOptions);
         canvas.addEventListener('auxclick', this.auxClickHandler);
-        
-        
+
+
     }
     /**
      * 【新增】让模型身体始终朝向相机
@@ -272,12 +272,12 @@ class VRMInteraction {
         // 3. 平滑插值处理角度突变
         const currentAngle = model.rotation.y;
         let diff = targetAngle - currentAngle;
-        
+
         while (diff > Math.PI) diff -= Math.PI * 2;
         while (diff < -Math.PI) diff += Math.PI * 2;
 
         // 4. 应用旋转 (速度可调)
-        const rotateSpeed = 10.0; 
+        const rotateSpeed = 10.0;
         if (Math.abs(diff) > 0.001) {
             model.rotation.y += diff * rotateSpeed * delta;
         }
@@ -293,7 +293,7 @@ class VRMInteraction {
         }
         return this.isLocked;
     }
-    
+
     /**
      * 每帧更新（由 VRMManager 驱动）
      */
@@ -310,10 +310,10 @@ class VRMInteraction {
         if (this.manager) {
             this.manager.isLocked = locked;
         }
-        
+
         // 不再修改 pointerEvents，改用逻辑拦截
         // 这样锁定时虽然不能移动/缩放，但依然可以点中模型弹出菜单
-        
+
         if (locked && this.isDragging) {
             this.isDragging = false;
             this.dragMode = null;
@@ -322,7 +322,7 @@ class VRMInteraction {
             }
         }
     }
-    
+
     /**
      * 确保模型不会完全消失 - 只在极端情况下重置位置
      * @param {THREE.Vector3} position - 目标位置
@@ -333,7 +333,7 @@ class VRMInteraction {
             console.error('[VRM Interaction] THREE.js 未加载，无法确保模型可见性');
             return position;
         }
-        
+
         // 如果模型移动得太远（超出20个单位），重置到原点
         const maxAllowedDistance = 20;
         const distanceFromOrigin = position.length();
@@ -352,16 +352,16 @@ class VRMInteraction {
      */
     cleanupDragAndZoom() {
         if (!this.manager.renderer) return;
-        
+
         // 清理初始化定时器（如果存在）
         if (this._initTimerId !== null) {
             clearTimeout(this._initTimerId);
             this._initTimerId = null;
         }
         this._isInitializingDragAndZoom = false;
-        
+
         const canvas = this.manager.renderer.domElement;
-        
+
         // 移除所有事件监听器
         // 注意：这些事件在添加时没有使用选项，所以移除时也不需要选项
         if (this.mouseDownHandler) {
@@ -376,7 +376,7 @@ class VRMInteraction {
             document.removeEventListener('mouseup', this.mouseUpHandler);
             this.mouseUpHandler = null;
         }
-        
+
         if (this.auxClickHandler) {
             canvas.removeEventListener('auxclick', this.auxClickHandler);
             this.auxClickHandler = null;
@@ -392,7 +392,7 @@ class VRMInteraction {
             this._wheelListenerOptions = null;
         }
     }
-    
+
     /**
      * 【视锥体中心点限制 + 非对称边界】
      * 
@@ -403,28 +403,28 @@ class VRMInteraction {
         if (!this.manager.camera || !this.manager.renderer) {
             return position;
         }
-        
+
         if (!THREE) {
             console.error('[VRM Interaction] THREE.js 未加载，无法限制模型位置');
             return position;
         }
-        
+
         const camera = this.manager.camera;
-        
+
         // 1. 将目标位置(世界坐标)投影到屏幕空间(NDC)
         const ndc = position.clone().project(camera);
-        
+
         // 2. 设定边界
         // X轴 (左右)：对称，保留 5% 边距
         const limitX = 0.95;
-        
+
         // Y轴 (上下)：非对称设置
         // -1.6: 放宽底部限制，允许脚底稍微移出屏幕下方，手感更自由
         //  0.2: 顶部依然保持严格，防止头飞出去
-        const limitYBottom = -1.6; 
+        const limitYBottom = -1.6;
         const limitYTop = 0.2;
-        
-        
+
+
         let clampedX = ndc.x;
         let clampedY = ndc.y;
 
@@ -444,29 +444,29 @@ class VRMInteraction {
         // 计算当前深度下，屏幕视平面的物理尺寸
         const distance = camera.position.distanceTo(position);
         const vFov = camera.fov * Math.PI / 180;
-        const planeHeightAtDistance = 2 * Math.tan(vFov / 2) * distance; 
-        const planeWidthAtDistance = planeHeightAtDistance * camera.aspect; 
-        
+        const planeHeightAtDistance = 2 * Math.tan(vFov / 2) * distance;
+        const planeWidthAtDistance = planeHeightAtDistance * camera.aspect;
+
         // 计算 NDC 的差值
         const deltaNdcX = clampedX - ndc.x;
         const deltaNdcY = clampedY - ndc.y;
-        
+
         // 转换为世界坐标偏移量
         const worldOffsetX = (deltaNdcX / 2.0) * planeWidthAtDistance;
         const worldOffsetY = (deltaNdcY / 2.0) * planeHeightAtDistance;
-        
+
         // 获取相机的右向量和上向量
         const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
         const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
-        
+
         // 应用偏移
         const correctedPos = position.clone();
         correctedPos.add(right.multiplyScalar(worldOffsetX));
         correctedPos.add(up.multiplyScalar(worldOffsetY));
-        
+
         return correctedPos;
     }
-    
+
 
     /**
      * 启用/禁用鼠标跟踪（用于控制浮动按钮显示/隐藏）
@@ -485,7 +485,7 @@ class VRMInteraction {
             this.cleanupFloatingButtonsMouseTracking();
         }
     }
-    
+
     /**
      * 更新模型包围盒和屏幕边界缓存（在模型或骨骼更新时调用）
      * 这个方法应该被外部调用，例如在模型加载、动画更新或骨骼变化时
@@ -554,10 +554,10 @@ class VRMInteraction {
         let buttonsContainer = document.getElementById('vrm-floating-buttons');
 
         if (!buttonsContainer) return;
-        
+
         // 初始化缓存
         this.updateModelBoundsCache();
-        
+
         // 清除之前的定时器和 RAF
         if (this._hideButtonsTimer) {
             clearTimeout(this._hideButtonsTimer);
@@ -567,7 +567,7 @@ class VRMInteraction {
             cancelAnimationFrame(this._floatingButtonsPendingFrame);
             this._floatingButtonsPendingFrame = null;
         }
-        
+
         // 辅助函数：显示按钮并更新位置
         const showButtons = () => {
             if (this.checkLocked()) return;
@@ -595,7 +595,7 @@ class VRMInteraction {
                 this._hideButtonsTimer = null;
             }
         };
-        
+
         // 辅助函数：使用缓存计算鼠标到模型的距离
         const calculateDistanceToModel = (mouseX, mouseY) => {
             if (!this._cachedScreenBounds) {
@@ -609,7 +609,7 @@ class VRMInteraction {
             const dy = Math.max(minY - mouseY, 0, mouseY - maxY);
             return Math.sqrt(dx * dx + dy * dy);
         };
-        
+
         // 辅助函数：启动隐藏定时器（简化版本，使用缓存）
         const startHideTimer = (delay = 1000) => {
             if (this.checkLocked()) return;
@@ -628,7 +628,7 @@ class VRMInteraction {
                     const mouseX = this._lastMouseX || 0;
                     const mouseY = this._lastMouseY || 0;
                     isMouseOverLock = mouseX >= lockRect.left && mouseX <= lockRect.right &&
-                                     mouseY >= lockRect.top && mouseY <= lockRect.bottom;
+                        mouseY >= lockRect.top && mouseY <= lockRect.bottom;
                 }
 
                 if (this._isMouseOverButtons || isMouseOverLock) {
@@ -667,14 +667,14 @@ class VRMInteraction {
                 this._hideButtonsTimer = null;
             }, delay);
         };
-        
+
         const onMouseEnter = () => showButtons();
-        
-        
+
+
         // RAF 回调：执行昂贵的 Box3 和投影计算
         const performExpensiveCalculation = () => {
             this._floatingButtonsPendingFrame = null;
-            
+
             if (!this.manager.currentModel || !this.manager.currentModel.vrm) return;
             if (this.checkLocked()) return;
             if (!this.manager.renderer || !this.manager.camera) return;
@@ -695,7 +695,7 @@ class VRMInteraction {
             if (currentButtonsContainer && currentButtonsContainer.style.display === 'flex') {
                 const buttonsRect = currentButtonsContainer.getBoundingClientRect();
                 isOverButtons = mouseX >= buttonsRect.left && mouseX <= buttonsRect.right &&
-                                mouseY >= buttonsRect.top && mouseY <= buttonsRect.bottom;
+                    mouseY >= buttonsRect.top && mouseY <= buttonsRect.bottom;
             }
 
             let isOverLock = false;
@@ -703,7 +703,7 @@ class VRMInteraction {
             if (lockIcon && lockIcon.style.display === 'block') {
                 const lockRect = lockIcon.getBoundingClientRect();
                 isOverLock = mouseX >= lockRect.left && mouseX <= lockRect.right &&
-                             mouseY >= lockRect.top && mouseY <= lockRect.bottom;
+                    mouseY >= lockRect.top && mouseY <= lockRect.bottom;
             }
 
             this._isMouseOverButtons = isOverButtons || isOverLock;
@@ -741,13 +741,13 @@ class VRMInteraction {
                 this._floatingButtonsPendingFrame = requestAnimationFrame(performExpensiveCalculation);
             }
         };
-        
+
         canvas.addEventListener('mouseenter', onMouseEnter);
         window.addEventListener('pointermove', onPointerMove);
-        
+
         this._floatingButtonsMouseEnter = onMouseEnter;
         this._floatingButtonsPointerMove = onPointerMove;
-        
+
         if (this.manager.currentModel && !this.checkLocked()) {
             setTimeout(() => {
                 showButtons();
@@ -755,15 +755,15 @@ class VRMInteraction {
             }, 100);
         }
     }
-    
+
     /**
      * 清理浮动按钮的鼠标跟踪
      */
     cleanupFloatingButtonsMouseTracking() {
         if (!this.manager.renderer) return;
-        
+
         const canvas = this.manager.renderer.domElement;
-        
+
         if (this._floatingButtonsMouseEnter) {
             canvas.removeEventListener('mouseenter', this._floatingButtonsMouseEnter);
             this._floatingButtonsMouseEnter = null;

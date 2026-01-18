@@ -113,8 +113,8 @@ class VRMAnimation {
     }
 
     update(delta) {
-        const safeDelta = (delta <= 0 || delta > VRMAnimation.MAX_DELTA_THRESHOLD) 
-            ? VRMAnimation.DEFAULT_FRAME_DELTA 
+        const safeDelta = (delta <= 0 || delta > VRMAnimation.MAX_DELTA_THRESHOLD)
+            ? VRMAnimation.DEFAULT_FRAME_DELTA
             : delta;
         const updateDelta = safeDelta * this.playbackSpeed;
 
@@ -127,7 +127,7 @@ class VRMAnimation {
                 if (this._cachedSceneUuid !== vrm.scene.uuid) {
                     this._cacheSkinnedMeshes(vrm);
                 }
-                
+
                 if (vrm.humanoid) {
                     const vrmVersion = this._detectVRMVersion(vrm);
                     if (vrmVersion === '1.0' && vrm.humanoid.autoUpdateHumanBones) {
@@ -153,7 +153,7 @@ class VRMAnimation {
         if (this.lipSyncActive && this.analyser) {
             this._updateLipSync(updateDelta);
         }
-        
+
         if (this.manager?.interaction && typeof this.manager.interaction.updateModelBoundsCache === 'function') {
             this._boundsUpdateFrameCounter++;
             if (this._boundsUpdateFrameCounter >= this._boundsUpdateInterval) {
@@ -165,7 +165,7 @@ class VRMAnimation {
 
     async _initLoader() {
         if (this._loaderPromise) return this._loaderPromise;
-        
+
         this._loaderPromise = (async () => {
             try {
                 const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
@@ -192,7 +192,7 @@ class VRMAnimation {
             }
             this.manager.animationMixer = null;
         }
-        
+
         if (this.vrmaMixer) {
             const oldRoot = this.vrmaMixer.getRoot();
             // 总是清理旧的 VRMA mixer，无论 oldRoot 是否等于当前的 vrm.scene 或 normalized root
@@ -249,12 +249,12 @@ class VRMAnimation {
             const errorMsg = window.t ? window.t('vrm.error.animationClipError', { error: clipError.message }) : `创建动画 Clip 时出错: ${clipError.message}`;
             throw new Error(errorMsg);
         }
-        
+
         if (!clip || !clip.tracks || clip.tracks.length === 0) {
             console.error('[VRM Animation] 创建的动画 Clip 没有有效的轨道');
-            console.error('[VRM Animation] Clip 信息:', { 
-                name: clip?.name, 
-                duration: clip?.duration, 
+            console.error('[VRM Animation] Clip 信息:', {
+                name: clip?.name,
+                duration: clip?.duration,
                 tracksCount: clip?.tracks?.length,
                 tracks: clip?.tracks?.map(t => t.name)
             });
@@ -287,10 +287,10 @@ class VRMAnimation {
             const bone = mixerRoot.getObjectByName(boneName);
             if (bone) foundCount++;
         });
-        
+
         let bestRoot = mixerRoot;
         let bestMatchCount = foundCount;
-        
+
         const sceneMatchCount = sampleTracks.filter(track => {
             const boneName = track.name.split('.')[0];
             return !!vrm.scene.getObjectByName(boneName);
@@ -299,7 +299,7 @@ class VRMAnimation {
             bestRoot = vrm.scene;
             bestMatchCount = sceneMatchCount;
         }
-        
+
         const normalizedRoot = vrm.humanoid?._normalizedHumanBones?.root;
         if (normalizedRoot) {
             if (!vrm.scene.getObjectByName(normalizedRoot.name)) {
@@ -319,7 +319,7 @@ class VRMAnimation {
                 VRMAnimation._normalizedRootWarningShown = true;
             }
         }
-        
+
         if (bestRoot !== mixerRoot) {
             mixerRoot = bestRoot;
         }
@@ -338,7 +338,7 @@ class VRMAnimation {
             this.currentAction = null;
             this.vrmaIsPlaying = false;
         }
-        
+
         this.vrmaMixer = new window.THREE.AnimationMixer(mixerRoot);
         const newAction = this.vrmaMixer.clipAction(clip);
         if (!newAction) {
@@ -350,7 +350,7 @@ class VRMAnimation {
             const errorMsg = window.t ? window.t('vrm.error.cannotCreateAnimationAction') : '无法创建动画动作';
             throw new Error(errorMsg);
         }
-        
+
         newAction.enabled = true;
         newAction.setLoop(options.loop ? window.THREE.LoopRepeat : window.THREE.LoopOnce);
         newAction.clampWhenFinished = true;
@@ -380,7 +380,7 @@ class VRMAnimation {
             }
         } else {
             if (this.currentAction && this.currentAction !== newAction) {
-                this.vrmaMixer.update(0); 
+                this.vrmaMixer.update(0);
                 if (vrm.scene) vrm.scene.updateMatrixWorld(true);
                 this.currentAction.fadeOut(fadeDuration);
                 newAction.enabled = true;
@@ -397,19 +397,19 @@ class VRMAnimation {
 
         this.currentAction = newAction;
         this.vrmaIsPlaying = true;
-        
+
         if (newAction.paused) {
             newAction.play();
         }
-        
+
         this.vrmaMixer.update(0.001);
-        
+
         if (vrm.scene) {
             // 检查 scene 是否变化，如果变化则重建缓存（防止僵尸引用）
             if (this._cachedSceneUuid !== vrm.scene.uuid) {
                 this._cacheSkinnedMeshes(vrm);
             }
-            
+
             vrm.scene.updateMatrixWorld(true);
             this._skinnedMeshes.forEach(mesh => {
                 if (mesh.skeleton) {
@@ -454,8 +454,12 @@ class VRMAnimation {
         }
 
         try {
-            if (this.manager.toggleSpringBone) {
-                this.manager.toggleSpringBone(false);
+            // 设置 autoUpdateHumanBones = false，让 vrm.update() 只更新 SpringBone 物理
+            // 不覆盖动画设置的 humanoid 骨骼位置
+            // 这样头发等物理效果可以在动画播放期间正常工作
+            const vrm = this.manager.currentModel?.vrm;
+            if (vrm?.humanoid) {
+                vrm.humanoid.autoUpdateHumanBones = false;
             }
 
             this._cleanupOldMixer(vrm);
@@ -499,7 +503,7 @@ class VRMAnimation {
             // 捕获要停止的 action，防止竞态条件（新 action 可能在定时器回调执行前启动）
             const actionAtStop = this.currentAction;
             this.currentAction.fadeOut(0.5);
-            
+
             this._fadeTimer = setTimeout(() => {
                 if (this._disposed) return;
                 // 只有当 currentAction 仍然是 actionAtStop 时才执行清理（防止取消新启动的 action）
@@ -510,19 +514,15 @@ class VRMAnimation {
                     this.currentAction = null;
                     this.vrmaIsPlaying = false;
                     this._fadeTimer = null;
-                    
-                    // 只为匹配的已停止 action 恢复 spring bones
+
+                    // 动画停止后恢复物理
                     this._springBoneRestoreTimer = setTimeout(() => {
-                        // 再次检查，确保没有新 action 启动（currentAction 仍为 null）
                         if (this.currentAction === null) {
-                            if (this.manager.toggleSpringBone) {
-                                this.manager.toggleSpringBone(true);
-                            }
+                            this._restorePhysics();
                         }
                         this._springBoneRestoreTimer = null;
                     }, 100);
                 } else {
-                    // 如果 currentAction 已变化（新 action 启动），只清除定时器引用
                     this._fadeTimer = null;
                 }
             }, 500);
@@ -531,10 +531,26 @@ class VRMAnimation {
                 this.vrmaMixer.stopAllAction();
             }
             this.vrmaIsPlaying = false;
-            if (this.manager.toggleSpringBone) {
-                this.manager.toggleSpringBone(true);
-            }
+            this._restorePhysics();
         }
+    }
+
+    /**
+     * 恢复物理系统并正确初始化 SpringBone
+     * 在动画停止后调用
+     */
+    _restorePhysics() {
+        if (!this.manager) return;
+
+        const vrm = this.manager.currentModel?.vrm;
+
+        // 恢复 autoUpdateHumanBones = true，让 vrm.update() 恢复正常的 humanoid 更新
+        if (vrm?.humanoid) {
+            vrm.humanoid.autoUpdateHumanBones = true;
+        }
+
+        // 方案3：不调用 reset() 和 setInitState()
+        // 让 SpringBone 保持当前状态继续运行物理
     }
 
     toggleDebug() {
@@ -554,7 +570,7 @@ class VRMAnimation {
         if (!vrm || !this.manager.scene) return;
 
         if (this.skeletonHelper) this.manager.scene.remove(this.skeletonHelper);
-        
+
         this.skeletonHelper = new window.THREE.SkeletonHelper(vrm.scene);
         this.skeletonHelper.visible = true;
         this.manager.scene.add(this.skeletonHelper);
@@ -625,8 +641,8 @@ class VRMAnimation {
         const lowEnd = Math.floor(this.frequencyData.length * 0.1);
         const midEnd = Math.floor(this.frequencyData.length * 0.3);
 
-        for(let i = 0; i < lowEnd; i++) lowFreqEnergy += this.frequencyData[i];
-        for(let i = lowEnd; i < midEnd; i++) midFreqEnergy += this.frequencyData[i];
+        for (let i = 0; i < lowEnd; i++) lowFreqEnergy += this.frequencyData[i];
+        for (let i = lowEnd; i < midEnd; i++) midFreqEnergy += this.frequencyData[i];
 
         lowFreqEnergy /= (lowEnd || 1);
         midFreqEnergy /= ((midEnd - lowEnd) || 1);
@@ -654,10 +670,10 @@ class VRMAnimation {
             clearTimeout(this._springBoneRestoreTimer);
             this._springBoneRestoreTimer = null;
         }
-        
+
         this._skinnedMeshes = [];
         this._cachedSceneUuid = null;
-        
+
         if (this.vrmaMixer) {
             this.vrmaMixer.stopAllAction();
             const root = this.vrmaMixer.getRoot();
@@ -666,7 +682,7 @@ class VRMAnimation {
             }
             this.vrmaMixer = null;
         }
-        
+
         this.currentAction = null;
         this.vrmaIsPlaying = false;
     }
