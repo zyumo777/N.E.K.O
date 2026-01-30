@@ -421,7 +421,7 @@ class ConfigManager:
         """
         # 确保目录存在
         if not self.ensure_memory_directory():
-            self._log(f"Warning: Cannot create memory directory, using project memory")
+            self._log("Warning: Cannot create memory directory, using project memory")
             return
         
         # 如果项目memory/store目录不存在，跳过
@@ -647,36 +647,42 @@ class ConfigManager:
         if ConfigManager._region_cache is not None:
             return ConfigManager._region_cache
         
-        # Default to mainland (no replacement) until we can verify
-        result = False
-        
         try:
-            # Check if shared_state module is already imported to avoid import during startup
-            import sys
+            # Skip if shared_state not loaded yet (avoid circular import during startup)
             if 'main_routers.shared_state' not in sys.modules:
-                # Module not loaded yet, skip check for now (will retry next time)
-                return False
+                return False  # Don't cache, retry next time
             
             from main_routers.shared_state import get_steamworks
             steamworks = get_steamworks()
             
             if steamworks is None:
-                # No Steam environment = default to non-mainland
-                result = True
-            else:
-                ip_country = steamworks.Utils.GetIPCountry()
-                if isinstance(ip_country, bytes):
-                    ip_country = ip_country.decode('utf-8')
-                # CN = mainland (False), else = non-mainland (True)
-                result = (ip_country.upper() != 'CN') if ip_country else True
+                # Steam not initialized yet, don't cache, retry next time
+                return False
             
-            # Only cache if we got a definitive answer
+            ip_country = steamworks.Utils.GetIPCountry()
+            if isinstance(ip_country, bytes):
+                ip_country = ip_country.decode('utf-8')
+            
+            # 醒目日志
+            print("=" * 60, file=sys.stderr)
+            print(f"[GeoIP DEBUG] Steam GetIPCountry() returned: '{ip_country}'", file=sys.stderr)
+            print(f"[GeoIP DEBUG] Country code (upper): '{ip_country.upper() if ip_country else 'EMPTY'}'", file=sys.stderr)
+            
+            # CN = mainland (False), else = non-mainland (True)
+            result = (ip_country.upper() != 'CN') if ip_country else True
+            
+            print(f"[GeoIP DEBUG] Is non-mainland: {result}", file=sys.stderr)
+            print(f"[GeoIP DEBUG] URL replacement: {'lanlan.tech -> lanlan.app' if result else 'NO CHANGE'}", file=sys.stderr)
+            print("=" * 60, file=sys.stderr)
+            
+            # Cache only when we get a definitive answer
             ConfigManager._region_cache = result
-        except Exception:
+            return result
+            
+        except Exception as e:
             # On any error, don't cache and default to mainland (no replacement)
-            pass
-        
-        return result
+            print(f"[GeoIP DEBUG] Exception: {e}", file=sys.stderr)
+            return False
     
     def _adjust_free_api_url(self, url: str, is_free: bool) -> str:
         """Internal URL adjustment for free API users based on region."""

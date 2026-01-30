@@ -306,7 +306,6 @@
     "getSubscribedItemsFailed": "Failed to get subscribed items: {{error}}",
     "getItemDetailsFailed": "Failed to get item details: {{error}}",
     "getItemDetailsFailedWithError": "Failed to get item details: {{error}}",
-    "unsubscribeFailed": "Failed to unsubscribe: {{error}}",
     "loadProcessedAudioFilesFailed": "Failed to load processed audio files from localStorage: {{error}}",
     "saveProcessedAudioFilesFailed": "Failed to save processed audio files to localStorage: {{error}}",
     "getSubscribedItemsFailedInScan": "Failed to get subscribed items: {{error}}",

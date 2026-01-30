@@ -210,17 +210,32 @@ async def get_steam_language():
         
         try:
             # 使用 Steam Utils API 获取用户 IP 所在国家
-            ip_country = steamworks.Utils.GetIPCountry()
-            if isinstance(ip_country, bytes):
-                ip_country = ip_country.decode('utf-8')
+            raw_ip_country = steamworks.Utils.GetIPCountry()
+            
+            # 醒目调试日志
+            print("=" * 60)
+            print(f"[GeoIP API DEBUG] Raw GetIPCountry() returned: {repr(raw_ip_country)}")
+            
+            if isinstance(raw_ip_country, bytes):
+                ip_country = raw_ip_country.decode('utf-8')
+                print(f"[GeoIP API DEBUG] Decoded from bytes: '{ip_country}'")
+            else:
+                ip_country = raw_ip_country
             
             # 转为大写以便比较
             if ip_country:
                 ip_country = ip_country.upper()
                 # 判断是否为中国大陆（国家代码为 "CN"）
                 is_mainland_china = (ip_country == "CN")
-                logger.info(f"[GeoIP] 用户 IP 国家: {ip_country}, 是否大陆: {is_mainland_china}")
+                print(f"[GeoIP API DEBUG] Country (upper): '{ip_country}'")
+                print(f"[GeoIP API DEBUG] Is mainland China: {is_mainland_china}")
+            else:
+                print(f"[GeoIP API DEBUG] Country is empty/None")
+            print("=" * 60)
+            
+            logger.info(f"[GeoIP] 用户 IP 国家: {ip_country}, 是否大陆: {is_mainland_china}")
         except Exception as geo_error:
+            print(f"[GeoIP API DEBUG] Exception: {geo_error}")
             logger.warning(f"[GeoIP] 获取用户 IP 国家失败: {geo_error}，默认为非大陆用户")
             ip_country = None
             is_mainland_china = False

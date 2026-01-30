@@ -324,7 +324,6 @@
     "getSubscribedItemsFailed": "获取订阅物品失败: {{error}}",
     "getItemDetailsFailed": "获取物品详情失败: {{error}}",
     "getItemDetailsFailedWithError": "获取物品详情失败: {{error}}",
-    "unsubscribeFailed": "取消订阅失败: {{error}}",
     "loadProcessedAudioFilesFailed": "从localStorage加载已处理音频文件失败: {{error}}",
     "saveProcessedAudioFilesFailed": "保存已处理音频文件到localStorage失败: {{error}}",
     "getSubscribedItemsFailedInScan": "获取订阅物品失败: {{error}}",

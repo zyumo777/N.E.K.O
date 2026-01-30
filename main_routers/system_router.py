@@ -285,7 +285,7 @@ async def update_playtime(request: Request):
                         "added": seconds_to_add
                     })
                 else:
-                    logger.warning("SetStat 返回 False - PLAY_TIME_SECONDS 统计可能未在 Steamworks 后台配置")
+                    logger.debug("SetStat 返回 False - PLAY_TIME_SECONDS 统计可能未在 Steamworks 后台配置")
                     # 即使失败也返回成功，避免前端报错
                     return JSONResponse(content={
                         "success": True,
