@@ -3724,47 +3724,30 @@ function init_app() {
         // 重置平滑状态
         _lastMouthOpen = 0;
         
-        // 使用频域数据 (Frequency Data) 而不是时域数据，这样对人声更敏感
-        analyser.fftSize = 512; // 较小的 FFT 窗口可以提高实时性
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        let logCounter = 0;
+        // 使用时域数据计算 RMS，对干声足够了
+        const dataArray = new Uint8Array(analyser.fftSize);
 
         function animate() {
             if (!analyser) return;
             
-            // 获取频域数据
-            analyser.getByteFrequencyData(dataArray);
+            analyser.getByteTimeDomainData(dataArray);
             
-            // 计算人声频段 (约 85Hz - 255Hz，但在 FFT 中通常看低中频)
-            // 我们取前 1/4 的频段能量作为嘴巴开合的依据
+            // 计算 RMS
             let sum = 0;
-            const count = Math.floor(bufferLength * 0.4); // 取低频部分
-            for (let i = 0; i < count; i++) {
-                sum += dataArray[i];
+            for (let i = 0; i < dataArray.length; i++) {
+                const val = (dataArray[i] - 128) / 128; // 归一化到 -1~1
+                sum += val * val;
             }
-            const average = sum / count;
+            const rms = Math.sqrt(sum / dataArray.length);
             
             // 映射到 0~1
-            // 阈值调整：进一步提高静默阈值，并压缩动态范围
-            // 假设 30 是环境噪音，150 是大声说话
-            let mouthOpen = (average - 35) / 140; 
-            mouthOpen = Math.max(0, Math.min(1, mouthOpen));
+            let mouthOpen = Math.min(1, rms * 8);
             
-            // 进一步限制最大张开度，避免出现 O 型嘴 (限制在 0.5 左右)
-            // 0.5 通常是 Live2D 模型比较自然的张嘴程度
-            mouthOpen = mouthOpen * 0.5;
             
             // 柔化处理：大幅增加平滑度，让动作更“肉”一点，避免快速开合
-            mouthOpen = _lastMouthOpen * 0.7 + mouthOpen * 0.3;
+            mouthOpen = _lastMouthOpen * 0.3 + mouthOpen * 0.7;
             _lastMouthOpen = mouthOpen;
 
-            // 每60帧输出一次调试日志
-            if (logCounter++ % 60 === 0) {
-                if (window.DEBUG_LIPSYNC) {
-                    console.log('[LipSync] avg_freq:', average.toFixed(2), 'mouthOpen:', mouthOpen.toFixed(4));
-                }
-            }
             
             if (window.LanLan1 && typeof window.LanLan1.setMouth === 'function') {
                 window.LanLan1.setMouth(mouthOpen);
