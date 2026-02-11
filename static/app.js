@@ -6517,8 +6517,8 @@ function init_app() {
     }
 
     // 为浮动弹出框渲染麦克风列表（修复版本：确保有权限后再渲染）
-    window.renderFloatingMicList = async () => {
-        const micPopup = document.getElementById('live2d-popup-mic');
+    window.renderFloatingMicList = async (popupArg) => {
+        const micPopup = popupArg || document.getElementById('live2d-popup-mic');
         if (!micPopup) {
             return false;
         }
@@ -6539,7 +6539,26 @@ function init_app() {
                 return false;
             }
 
-            // ========== 1. 扬声器音量控制（最上面） ==========
+            // ===== 双栏布局容器 =====
+            const leftColumn = document.createElement('div');
+            Object.assign(leftColumn.style, {
+                flex: '1',
+                minWidth: '180px',
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto'
+            });
+
+            const rightColumn = document.createElement('div');
+            Object.assign(rightColumn.style, {
+                flex: '1',
+                minWidth: '160px',
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto'
+            });
+
+            // ========== 左栏 1. 扬声器音量控制 ==========
             const speakerContainer = document.createElement('div');
             speakerContainer.className = 'speaker-volume-container';
             Object.assign(speakerContainer.style, {
@@ -6619,16 +6638,16 @@ function init_app() {
             });
             speakerContainer.appendChild(speakerHint);
 
-            micPopup.appendChild(speakerContainer);
+            leftColumn.appendChild(speakerContainer);
 
             // 添加分隔线
             const speakerSeparator = document.createElement('div');
             speakerSeparator.style.height = '1px';
             speakerSeparator.style.backgroundColor = '#eee';
             speakerSeparator.style.margin = '8px 0';
-            micPopup.appendChild(speakerSeparator);
+            leftColumn.appendChild(speakerSeparator);
 
-            // ========== 2. 麦克风增益控制 ==========
+            // ========== 左栏 2. 麦克风增益控制 ==========
             const gainContainer = document.createElement('div');
             gainContainer.className = 'mic-gain-container';
             Object.assign(gainContainer.style, {
@@ -6707,114 +6726,16 @@ function init_app() {
             });
             gainContainer.appendChild(gainHint);
 
-            micPopup.appendChild(gainContainer);
-
-            // 添加分隔线（设备列表前）
-            const deviceSeparator = document.createElement('div');
-            deviceSeparator.style.height = '1px';
-            deviceSeparator.style.backgroundColor = '#eee';
-            deviceSeparator.style.margin = '8px 0';
-            micPopup.appendChild(deviceSeparator);
-
-            // ========== 3. 麦克风设备选择列表 ==========
-            // 添加默认麦克风选项
-            const defaultOption = document.createElement('button');
-            defaultOption.className = 'mic-option';
-            // 不设置 dataset.deviceId，让它保持 undefined（表示默认）
-            defaultOption.textContent = window.t ? window.t('microphone.defaultDevice') : '系统默认麦克风';
-            if (selectedMicrophoneId === null) {
-                defaultOption.classList.add('selected');
-            }
-            Object.assign(defaultOption.style, {
-                padding: '8px 12px',
-                cursor: 'pointer',
-                border: 'none',
-                background: selectedMicrophoneId === null ? '#e6f0ff' : 'transparent',
-                borderRadius: '6px',
-                transition: 'background 0.2s ease',
-                fontSize: '13px',
-                width: '100%',
-                textAlign: 'left',
-                color: selectedMicrophoneId === null ? '#4f8cff' : '#333',
-                fontWeight: selectedMicrophoneId === null ? '500' : '400'
-            });
-            defaultOption.addEventListener('mouseenter', () => {
-                if (selectedMicrophoneId !== null) {
-                    defaultOption.style.background = 'rgba(79, 140, 255, 0.1)';
-                }
-            });
-            defaultOption.addEventListener('mouseleave', () => {
-                if (selectedMicrophoneId !== null) {
-                    defaultOption.style.background = 'transparent';
-                }
-            });
-            defaultOption.addEventListener('click', async () => {
-                await selectMicrophone(null);
-                // 只更新选中状态，不重新渲染整个列表
-                updateMicListSelection();
-            });
-            micPopup.appendChild(defaultOption);
-
-            // 添加分隔线
-            const separator = document.createElement('div');
-            separator.style.height = '1px';
-            separator.style.backgroundColor = '#eee';
-            separator.style.margin = '5px 0';
-            micPopup.appendChild(separator);
-
-            // 添加各个麦克风设备选项
-            audioInputs.forEach(device => {
-                const option = document.createElement('button');
-                option.className = 'mic-option';
-                option.dataset.deviceId = device.deviceId; // 存储设备ID用于更新选中状态
-                const micIndex = audioInputs.indexOf(device) + 1;
-                option.textContent = device.label || (window.t ? window.t('microphone.deviceLabel', { index: micIndex }) : `麦克风 ${micIndex}`);
-                if (selectedMicrophoneId === device.deviceId) {
-                    option.classList.add('selected');
-                }
-
-                Object.assign(option.style, {
-                    padding: '8px 12px',
-                    cursor: 'pointer',
-                    border: 'none',
-                    background: selectedMicrophoneId === device.deviceId ? '#e6f0ff' : 'transparent',
-                    borderRadius: '6px',
-                    transition: 'background 0.2s ease',
-                    fontSize: '13px',
-                    width: '100%',
-                    textAlign: 'left',
-                    color: selectedMicrophoneId === device.deviceId ? '#4f8cff' : '#333',
-                    fontWeight: selectedMicrophoneId === device.deviceId ? '500' : '400'
-                });
-
-                option.addEventListener('mouseenter', () => {
-                    if (selectedMicrophoneId !== device.deviceId) {
-                        option.style.background = 'rgba(79, 140, 255, 0.1)';
-                    }
-                });
-                option.addEventListener('mouseleave', () => {
-                    if (selectedMicrophoneId !== device.deviceId) {
-                        option.style.background = 'transparent';
-                    }
-                });
-
-                option.addEventListener('click', async () => {
-                    await selectMicrophone(device.deviceId);
-                    // 只更新选中状态，不重新渲染整个列表
-                    updateMicListSelection();
-                });
-
-                micPopup.appendChild(option);
-            });
+            leftColumn.appendChild(gainContainer);
 
             // 添加分隔线（音量可视化区域前）
             const volumeSeparator = document.createElement('div');
             volumeSeparator.style.height = '1px';
             volumeSeparator.style.backgroundColor = '#eee';
             volumeSeparator.style.margin = '8px 0';
-            micPopup.appendChild(volumeSeparator);
+            leftColumn.appendChild(volumeSeparator);
 
-            // ========== 4. 麦克风音量可视化区域 ==========
+            // ========== 左栏 3. 麦克风音量可视化区域 ==========
             const volumeContainer = document.createElement('div');
             volumeContainer.className = 'mic-volume-container';
             Object.assign(volumeContainer.style, {
@@ -6831,7 +6752,7 @@ function init_app() {
             });
 
             const volumeLabelText = document.createElement('span');
-            volumeLabelText.textContent = window.t ? window.t('microphone.volumeLabel') : '输入音量';
+            volumeLabelText.textContent = window.t ? window.t('microphone.volumeLabel') : '实时麦克风音量';
             volumeLabelText.style.fontSize = '13px';
             volumeLabelText.style.color = '#333';
             volumeLabelText.style.fontWeight = '500';
@@ -6883,7 +6804,135 @@ function init_app() {
             });
             volumeContainer.appendChild(volumeHint);
 
-            micPopup.appendChild(volumeContainer);
+            leftColumn.appendChild(volumeContainer);
+
+            // ========== 右栏：麦克风设备选择列表 ==========
+            // 标题
+            const deviceTitle = document.createElement('div');
+            Object.assign(deviceTitle.style, {
+                padding: '8px 12px 6px',
+                fontSize: '13px',
+                fontWeight: '600',
+                color: '#4f8cff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                borderBottom: '1px solid rgba(79, 140, 255, 0.15)',
+                marginBottom: '4px'
+            });
+            const deviceTitleIcon = document.createElement('span');
+            deviceTitleIcon.textContent = '🎙️';
+            deviceTitleIcon.style.fontSize = '14px';
+            const deviceTitleText = document.createElement('span');
+            deviceTitleText.textContent = window.t ? window.t('microphone.deviceTitle') : '选择麦克风设备';
+            deviceTitleText.setAttribute('data-i18n', 'microphone.deviceTitle');
+            deviceTitle.appendChild(deviceTitleIcon);
+            deviceTitle.appendChild(deviceTitleText);
+            rightColumn.appendChild(deviceTitle);
+
+            // 添加默认麦克风选项
+            const defaultOption = document.createElement('button');
+            defaultOption.className = 'mic-option';
+            // 不设置 dataset.deviceId，让它保持 undefined（表示默认）
+            defaultOption.textContent = window.t ? window.t('microphone.defaultDevice') : '系统默认麦克风';
+            if (selectedMicrophoneId === null) {
+                defaultOption.classList.add('selected');
+            }
+            Object.assign(defaultOption.style, {
+                padding: '8px 12px',
+                cursor: 'pointer',
+                border: 'none',
+                background: selectedMicrophoneId === null ? '#e6f0ff' : 'transparent',
+                borderRadius: '6px',
+                transition: 'background 0.2s ease',
+                fontSize: '13px',
+                width: '100%',
+                textAlign: 'left',
+                color: selectedMicrophoneId === null ? '#4f8cff' : '#333',
+                fontWeight: selectedMicrophoneId === null ? '500' : '400'
+            });
+            defaultOption.addEventListener('mouseenter', () => {
+                if (selectedMicrophoneId !== null) {
+                    defaultOption.style.background = 'rgba(79, 140, 255, 0.1)';
+                }
+            });
+            defaultOption.addEventListener('mouseleave', () => {
+                if (selectedMicrophoneId !== null) {
+                    defaultOption.style.background = 'transparent';
+                }
+            });
+            defaultOption.addEventListener('click', async () => {
+                await selectMicrophone(null);
+                // 只更新选中状态，不重新渲染整个列表
+                updateMicListSelection();
+            });
+            rightColumn.appendChild(defaultOption);
+
+            // 添加分隔线
+            const separator = document.createElement('div');
+            separator.style.height = '1px';
+            separator.style.backgroundColor = '#eee';
+            separator.style.margin = '5px 0';
+            rightColumn.appendChild(separator);
+
+            // 添加各个麦克风设备选项
+            audioInputs.forEach(device => {
+                const option = document.createElement('button');
+                option.className = 'mic-option';
+                option.dataset.deviceId = device.deviceId; // 存储设备ID用于更新选中状态
+                const micIndex = audioInputs.indexOf(device) + 1;
+                option.textContent = device.label || (window.t ? window.t('microphone.deviceLabel', { index: micIndex }) : `麦克风 ${micIndex}`);
+                if (selectedMicrophoneId === device.deviceId) {
+                    option.classList.add('selected');
+                }
+
+                Object.assign(option.style, {
+                    padding: '8px 12px',
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: selectedMicrophoneId === device.deviceId ? '#e6f0ff' : 'transparent',
+                    borderRadius: '6px',
+                    transition: 'background 0.2s ease',
+                    fontSize: '13px',
+                    width: '100%',
+                    textAlign: 'left',
+                    color: selectedMicrophoneId === device.deviceId ? '#4f8cff' : '#333',
+                    fontWeight: selectedMicrophoneId === device.deviceId ? '500' : '400'
+                });
+
+                option.addEventListener('mouseenter', () => {
+                    if (selectedMicrophoneId !== device.deviceId) {
+                        option.style.background = 'rgba(79, 140, 255, 0.1)';
+                    }
+                });
+                option.addEventListener('mouseleave', () => {
+                    if (selectedMicrophoneId !== device.deviceId) {
+                        option.style.background = 'transparent';
+                    }
+                });
+
+                option.addEventListener('click', async () => {
+                    await selectMicrophone(device.deviceId);
+                    // 只更新选中状态，不重新渲染整个列表
+                    updateMicListSelection();
+                });
+
+                rightColumn.appendChild(option);
+            });
+
+            // ===== 组装双栏布局 =====
+            micPopup.appendChild(leftColumn);
+
+            // 垂直分隔线
+            const verticalDivider = document.createElement('div');
+            Object.assign(verticalDivider.style, {
+                width: '1px',
+                backgroundColor: '#eee',
+                alignSelf: 'stretch',
+                margin: '8px 0'
+            });
+            micPopup.appendChild(verticalDivider);
+            micPopup.appendChild(rightColumn);
 
             // 启动音量可视化更新
             startMicVolumeVisualization();
@@ -6904,7 +6953,7 @@ function init_app() {
 
     // 轻量级更新：仅更新麦克风列表的选中状态（不重新渲染整个列表）
     function updateMicListSelection() {
-        const micPopup = document.getElementById('live2d-popup-mic');
+        const micPopup = document.getElementById('live2d-popup-mic') || document.getElementById('vrm-popup-mic');
         if (!micPopup) return;
 
         // 更新所有选项的选中状态
