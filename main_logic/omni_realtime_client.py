@@ -250,12 +250,20 @@ class OmniRealtimeClient:
                 if self._silence_timeout_triggered:
                     continue
                 
-                if self._last_speech_time is None:
+                # 选择语音活动时间源：有 server VAD 用 _last_speech_time，否则用客户端 VAD
+                if self._has_server_vad:
+                    speech_time = self._last_speech_time
+                else:
+                    # 无 server VAD 时（free/gemini），用客户端能量/RNNoise 检测的时间戳
+                    speech_time = self._client_vad_last_speech_time if self._client_vad_last_speech_time > 0 else None
+                
+                if speech_time is None:
                     # 还没有检测到任何语音，从现在开始计时
                     self._last_speech_time = time.time()
+                    self._client_vad_last_speech_time = self._last_speech_time
                     continue
                 
-                elapsed = time.time() - self._last_speech_time
+                elapsed = time.time() - speech_time
                 if elapsed >= self._silence_timeout_seconds:
                     logger.warning(f"⏰ 检测到{self._silence_timeout_seconds}秒无语音输入，触发自动关闭")
                     self._silence_timeout_triggered = True
