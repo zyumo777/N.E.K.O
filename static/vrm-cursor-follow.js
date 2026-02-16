@@ -241,24 +241,17 @@ class CursorFollowController {
 
     // ════════════════════════════════════════════════════════════════
     //  辅助：检测模型实际前方向
-    //  将局部 (0,0,1) 通过 scene 世界四元数变换到世界空间，
-    //  根据变换后 z 分量的符号确定 _modelForwardZ：
-    //    worldZ >= 0 → scene 未翻转（VRM 0.x），forwardSign = -1
-    //    worldZ <  0 → scene 已 180° Y 翻转（VRM 1.0 / three-vrm），forwardSign = +1
+    //  基于 VRM 模型版本（由 vrm-core.js detectVRMVersion 从 GLTF
+    //  extensionsUsed / meta 属性检测），不依赖 scene 世界旋转：
+    //    VRM 1.0 → three-vrm 内部对 scene 做了 180° Y 翻转，forwardSign = +1
+    //    VRM 0.x → forwardSign = -1
     // ════════════════════════════════════════════════════════════════
     _detectModelForward() {
-        const vrm = this.manager?.currentModel?.vrm;
-        if (!vrm?.scene) {
-            this._modelForwardZ = 1;
-            return;
-        }
-        vrm.scene.updateWorldMatrix(true, false);
-        const worldForward = new THREE.Vector3(0, 0, 1)
-            .applyQuaternion(vrm.scene.getWorldQuaternion(this._tempQuat || new THREE.Quaternion()));
-        // worldZ >= 0 → scene 未翻转（VRM 0.x），需要 forwardSign=-1 来补偿坐标系差异
-        // worldZ <  0 → scene 已 180° Y 翻转（VRM 1.0 / three-vrm），forwardSign=+1
-        this._modelForwardZ = worldForward.z >= 0 ? -1 : 1;
-        console.log(`[CursorFollow] 模型前方向检测: localZ(0,0,1) → worldZ=${worldForward.z.toFixed(3)}, forwardSign=${this._modelForwardZ}`);
+        const vrmVersion = this.manager?.core?.vrmVersion;
+        // VRM 1.0: three-vrm 内部已翻转 scene，forwardSign = -1
+        // VRM 0.x: forwardSign = +1
+        this._modelForwardZ = (vrmVersion === '1.0') ? -1 : 1;
+        console.log(`[CursorFollow] 模型前方向检测: vrmVersion=${vrmVersion || 'unknown'}, forwardSign=${this._modelForwardZ}`);
     }
 
     // ════════════════════════════════════════════════════════════════
