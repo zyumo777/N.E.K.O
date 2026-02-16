@@ -151,6 +151,9 @@ class CursorFollowController {
         this._tempQuatE = null;
         this._tempEuler = null;
 
+        // ── 模型前方向符号（+1 = VRM 1.0 标准 +Z，-1 = VRM 0.x / 180° 旋转 -Z） ──
+        this._modelForwardZ = 1;
+
         // ── 事件处理器引用 ──
         this._onPointerMove = null;
 
@@ -217,6 +220,7 @@ class CursorFollowController {
         this._headFilterPitch = new OneEuroFilter(D.headOneEuroMinCutoff, D.headOneEuroBeta, D.headOneEuroDCutoff);
 
         this._bindEvents();
+        this._detectModelForward();
         this._initialized = true;
         console.log('[CursorFollow] 初始化完成');
     }
@@ -232,6 +236,26 @@ class CursorFollowController {
         };
 
         document.addEventListener('pointermove', this._onPointerMove, { passive: true });
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  辅助：检测模型实际前方向
+    //  VRM 1.0 标准导出 face +Z，VRM 0.x 或 scene 有 180° Y 旋转时 face -Z
+    //  通过将局部 (0,0,1) 变换到世界空间后检查 z 分量的符号来判定
+    // ════════════════════════════════════════════════════════════════
+    _detectModelForward() {
+        const vrm = this.manager?.currentModel?.vrm;
+        if (!vrm?.scene) {
+            this._modelForwardZ = 1;
+            return;
+        }
+        vrm.scene.updateWorldMatrix(true, false);
+        const worldForward = new THREE.Vector3(0, 0, 1)
+            .applyQuaternion(vrm.scene.getWorldQuaternion(this._tempQuat || new THREE.Quaternion()));
+        // z < 0 → 模型面朝 -Z（VRM 1.0 标准，three-vrm 内部已翻转），需要 forwardSign=-1
+        // z > 0 → 模型面朝 +Z（VRM 0.x），forwardSign=+1
+        this._modelForwardZ = worldForward.z >= 0 ? -1 : 1;
+        console.log(`[CursorFollow] 模型前方向检测: localZ(0,0,1) → worldZ=${worldForward.z.toFixed(3)}, forwardSign=${this._modelForwardZ}`);
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -379,7 +403,8 @@ class CursorFollowController {
             scene.getWorldQuaternion(this._tempQuat); // sceneWorldQuat
 
             // modelForward / modelUp / modelRight
-            const modelForward = this._tempVec3B.set(0, 0, 1).applyQuaternion(this._tempQuat);
+            // 使用 _modelForwardZ 适配 VRM 0.x(-Z) 和 1.0(+Z) 的前方向差异
+            const modelForward = this._tempVec3B.set(0, 0, this._modelForwardZ).applyQuaternion(this._tempQuat);
             const modelUp = this._tempVec3C.set(0, 1, 0).applyQuaternion(this._tempQuat);
             const modelRight = this._tempVec3D.crossVectors(modelUp, modelForward).normalize();
 
@@ -512,6 +537,9 @@ class CursorFollowController {
         if (this._eyeFilterY) this._eyeFilterY.reset();
         if (this._headFilterYaw) this._headFilterYaw.reset();
         if (this._headFilterPitch) this._headFilterPitch.reset();
+
+        // 重新检测新模型的前方向
+        this._detectModelForward();
 
         // 重置眼睛目标到头部前方
         if (this.eyesTarget && this.manager?.camera) {
