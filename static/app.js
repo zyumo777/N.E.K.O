@@ -8298,6 +8298,16 @@ function init_app() {
 
             if (validLinks.length === 0) return;
 
+            // 超过 3 个旧卡片时，移除最早的
+            const MAX_LINK_CARDS = 3;
+            const existingCards = chatContent.querySelectorAll('.proactive-source-link-card');
+            const overflow = existingCards.length - MAX_LINK_CARDS + 1;
+            if (overflow > 0) {
+                for (let i = 0; i < overflow; i++) {
+                    existingCards[i].remove();
+                }
+            }
+
             const linkCard = document.createElement('div');
             linkCard.className = 'proactive-source-link-card';
             linkCard.style.cssText = `
@@ -8310,7 +8320,43 @@ function init_app() {
                 opacity: 0;
                 transition: opacity 0.4s ease;
                 max-width: 320px;
+                position: relative;
             `;
+
+            const closeBtn = document.createElement('span');
+            closeBtn.textContent = '✕';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                cursor: pointer;
+                color: var(--text-secondary, rgba(200,200,200,0.8));
+                font-size: 14px;
+                font-weight: bold;
+                line-height: 1;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.08);
+                transition: color 0.2s, background 0.2s;
+                z-index: 1;
+            `;
+            closeBtn.addEventListener('mouseenter', () => {
+                closeBtn.style.color = '#fff';
+                closeBtn.style.background = 'rgba(255,255,255,0.2)';
+            });
+            closeBtn.addEventListener('mouseleave', () => {
+                closeBtn.style.color = 'var(--text-secondary, rgba(200,200,200,0.8))';
+                closeBtn.style.background = 'rgba(255,255,255,0.08)';
+            });
+            closeBtn.addEventListener('click', () => {
+                linkCard.style.opacity = '0';
+                setTimeout(() => { linkCard.remove(); }, 300);
+            });
+            linkCard.appendChild(closeBtn);
 
             for (const link of validLinks) {
                 const a = document.createElement('a');
@@ -8323,6 +8369,7 @@ function init_app() {
                     color: var(--accent-color, #6c8cff);
                     text-decoration: none;
                     padding: 3px 0;
+                    padding-right: 20px;
                     word-break: break-all;
                     font-size: 12px;
                 `;
@@ -8334,10 +8381,8 @@ function init_app() {
             chatContent.appendChild(linkCard);
             chatContent.scrollTop = chatContent.scrollHeight;
 
-            // 淡入
             requestAnimationFrame(() => { linkCard.style.opacity = '1'; });
 
-            // 5 分钟后自动移除
             setTimeout(() => {
                 linkCard.style.opacity = '0';
                 setTimeout(() => { linkCard.remove(); }, 500);

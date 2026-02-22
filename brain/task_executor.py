@@ -152,19 +152,21 @@ class DirectTaskExecutor:
     
     def _format_messages(self, messages: List[Dict[str, str]]) -> str:
         """格式化对话消息"""
+        def _extract_text(m: dict) -> str:
+            return str(m.get('text') or m.get('content') or '').strip()
+
         latest_user_text = ""
         for m in reversed(messages[-10:]):
             if m.get('role') == 'user':
-                latest_user_text = (m.get('text') or '').strip()
+                latest_user_text = _extract_text(m)
                 if latest_user_text:
                     break
         lines = []
         if latest_user_text:
-            # Explicitly surface latest user intent to avoid being shadowed by assistant claims.
             lines.append(f"LATEST_USER_REQUEST: {latest_user_text}")
-        for m in messages[-10:]:  # 最多取最近10条
+        for m in messages[-10:]:
             role = m.get('role', 'user')
-            text = m.get('text', '')
+            text = _extract_text(m)
             if text:
                 lines.append(f"{role}: {text}")
         return "\n".join(lines)

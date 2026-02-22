@@ -19,6 +19,9 @@ from openai import OpenAI
 from config import get_extra_body
 from utils.config_manager import get_config_manager
 
+_TARGET_HEIGHT = 1080
+_JPEG_QUALITY = 75
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -36,8 +39,11 @@ except Exception:
 
 try:
     import pyautogui
+    from PIL import Image as _PILImage
+    _LANCZOS = getattr(_PILImage, 'LANCZOS', getattr(_PILImage, 'ANTIALIAS', 1))
 except Exception:
     pyautogui = None
+    _LANCZOS = 1
 
 
 # ─── Prompt Templates ───────────────────────────────────────────────────
@@ -318,6 +324,17 @@ class _ScaledPyAutoGUI:
 
 # ─── Main Adapter ───────────────────────────────────────────────────────
 
+def _compress_screenshot(img, target_h: int = _TARGET_HEIGHT, quality: int = _JPEG_QUALITY) -> bytes:
+    """Resize to *target_h*p (keep aspect ratio) and encode as JPEG."""
+    w, h = img.size
+    if h > target_h:
+        ratio = target_h / h
+        img = img.resize((int(w * ratio), target_h), _LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=quality, optimize=True)
+    return buf.getvalue()
+
+
 class ComputerUseAdapter:
     """GUI automation agent: single-call Thought + Action + Code paradigm.
 
@@ -376,7 +393,9 @@ class ComputerUseAdapter:
                 self.last_error = "Agent model not configured"
                 return
 
-            self._llm_client = OpenAI(base_url=base_url, api_key=api_key)
+            self._llm_client = OpenAI(
+                base_url=base_url, api_key=api_key, timeout=60.0,
+            )
 
             # Connectivity test (via langchain for compatibility with extra_body)
             from langchain_openai import ChatOpenAI
@@ -473,7 +492,7 @@ class ComputerUseAdapter:
                     "content": [{
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/png;base64,{b64}",
+                            "url": f"data:image/jpeg;base64,{b64}",
                         },
                     }],
                 })
@@ -501,7 +520,7 @@ class ComputerUseAdapter:
             "content": [
                 {
                     "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{cur_b64}"},
+                    "image_url": {"url": f"data:image/jpeg;base64,{cur_b64}"},
                 },
                 {"type": "text", "text": instruction_prompt},
             ],
@@ -556,12 +575,18 @@ class ComputerUseAdapter:
 
         try:
             for step in range(1, self.max_steps + 1):
-                # Screenshot → PNG bytes (native resolution, no resize)
+                t0 = time.monotonic()
                 shot = pyautogui.screenshot()
-                buf = io.BytesIO()
-                shot.save(buf, format="PNG")
+                jpg_bytes = _compress_screenshot(shot)
+                t_capture = time.monotonic() - t0
 
-                info, code = self.predict(instruction, {"screenshot": buf.getvalue()})
+                t1 = time.monotonic()
+                info, code = self.predict(instruction, {"screenshot": jpg_bytes})
+                t_llm = time.monotonic() - t1
+                logger.info(
+                    "[CUA] Step %d timing: capture=%.1fs (%dKB), llm=%.1fs",
+                    step, t_capture, len(jpg_bytes) // 1024, t_llm,
+                )
 
                 if not code:
                     continue
